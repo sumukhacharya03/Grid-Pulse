@@ -98,6 +98,10 @@ if __name__ == "__main__":
 # ./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic historical-performance-race --from-beginning
 # ./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic historical-performance-qualifying --from-beginning
 # 6. Keep Zookeeper running:
-# bin/zookeeper-server-start.sh config/zookeeper.properties
+# ./bin/zookeeper-server-start.sh -daemon config/zookeeper.properties
 # 7. Keep Kafka Broker running (in another terminal):
-# bin/kafka-server-start.sh config/server.properties
+# ./bin/kafka-server-start.sh -daemon config/server.properties
+# How to stop Kafka Broker:
+# ./bin/kafka-server-stop.sh
+# How to stop Zookeeper Server:
+# ./bin/zookeeper-server-stop.sh

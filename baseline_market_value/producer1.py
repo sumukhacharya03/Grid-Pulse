@@ -50,6 +50,10 @@ print("All messages sent successfully")
 # 5. Check messages sent to a Topic:
 # ./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic drivers-baseline-value --from-beginning
 # 6. Keep Zookeeper running:
-# bin/zookeeper-server-start.sh config/zookeeper.properties
+# ./bin/zookeeper-server-start.sh -daemon config/zookeeper.properties
 # 7. Keep Kafka Broker running (in another terminal):
-# bin/kafka-server-start.sh config/server.properties
+# ./bin/kafka-server-start.sh -daemon config/server.properties
+# 8. How to stop Kafka Broker:
+# ./bin/kafka-server-stop.sh
+# 9. How to stop Zookeeper Server:
+# ./bin/zookeeper-server-stop.sh
