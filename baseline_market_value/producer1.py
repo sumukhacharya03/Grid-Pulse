@@ -5,7 +5,7 @@ from kafka import KafkaProducer
 topic_name = 'drivers-baseline-value'
 
 producer = KafkaProducer(
-    bootstrap_servers='localhost:9092',
+    bootstrap_servers='kafka:9092',
     # Serializes dictionary to JSON bytes
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )

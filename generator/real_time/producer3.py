@@ -3,7 +3,7 @@ import json
 import os
 from kafka import KafkaProducer
 
-KAFKA_BROKER = 'localhost:9092'
+KAFKA_BROKER = 'kafka:9092'
 QUEUE_DIRECTORY = 'live_events_queue'
 
 TOPICS = {

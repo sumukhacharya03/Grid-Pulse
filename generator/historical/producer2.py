@@ -3,8 +3,8 @@ from kafka import KafkaProducer
 import os
 import time
 
-KAFKA_BROKER = 'localhost:9092'
-HISTORICAL_DIR = 'generated_historical_results' 
+KAFKA_BROKER = 'kafka:9092'
+HISTORICAL_DIR = 'generator/historical/generated_historical_results'
 TOPICS = {
     "practice": "historical-performance-practice",
     "qualifying": "historical-performance-qualifying",

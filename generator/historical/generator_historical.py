@@ -20,7 +20,8 @@ TRACK_CHARACTERISTICS = {
     "Canada Grand Prix": {"base_minutes": 1, "base_seconds": 11.00, "laps": 70},
     "Austrian Grand Prix": {"base_minutes": 1, "base_seconds": 4.00, "laps": 71},
     "British Grand Prix": {"base_minutes": 1, "base_seconds": 25.00, "laps": 52},
-    "Belgium Grand Prix": {"base_minutes": 1, "base_seconds": 40.250, "laps": 44}
+    "Belgium Grand Prix": {"base_minutes": 1, "base_seconds": 40.250, "laps": 44},
+    "Hungarian Grand Prix": {"base_minutes": 1, "base_seconds": 15, "laps":70}
 }
 SPRINT_WEEKENDS = ["Chinese Grand Prix", "Miami Grand Prix", "Belgium Grand Prix"]
 

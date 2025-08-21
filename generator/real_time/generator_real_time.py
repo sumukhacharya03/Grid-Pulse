@@ -9,7 +9,6 @@ from datetime import datetime
 QUEUE_DIRECTORY = os.path.join(os.path.dirname(__file__), 'live_events_queue')
 
 F1_SCHEDULE_2025 = {
-    "Hungary Grand Prix": ["2025-08-01",'2025-08-02','2025-08-03'],
     "Dutch Grand Prix": ["2025-08-29", "2025-08-30", "2025-08-31"],
     "Italian Grand Prix": ["2025-09-05", "2025-09-06", "2025-09-07"],
     "Azerbaijan Grand Prix": ["2025-09-19", "2025-09-20", "2025-09-21"],
