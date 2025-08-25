@@ -5,7 +5,7 @@ from kafka import KafkaProducer
 from kafka.errors import NoBrokersAvailable
 
 KAFKA_BROKER = 'kafka:9092'
-QUEUE_DIRECTORY = 'generator/real_time/live_events_queue'  # Corrected path
+QUEUE_DIRECTORY = 'generator/real_time/live_events_queue'
 MAX_CONNECTION_RETRIES = 10
 RETRY_DELAY_SECONDS = 5
 
@@ -24,19 +24,19 @@ def create_kafka_producer():
                 bootstrap_servers=KAFKA_BROKER,
                 value_serializer=lambda v: json.dumps(v).encode('utf-8')
             )
-            print("✅ Kafka Producer connected successfully.")
+            print("Kafka Producer connected successfully")
             return producer
         except NoBrokersAvailable:
             retries += 1
             print(
-                f"Failed to connect to Kafka. Retrying in {RETRY_DELAY_SECONDS}s... ({retries}/{MAX_CONNECTION_RETRIES})")
+                f"Failed to connect to Kafka. Retrying in {RETRY_DELAY_SECONDS}s ({retries}/{MAX_CONNECTION_RETRIES})")
             time.sleep(RETRY_DELAY_SECONDS)
-    print("❌ Error: Could not connect to Kafka after several retries.")
+    print("Error: Could not connect to Kafka after several retries")
     return None
 
 
 def watch_and_produce(producer):
-    print(f"👀 Starting Live Event Producer... Watching for event files in '{QUEUE_DIRECTORY}'. Press Ctrl+C to stop.")
+    print(f"Starting Live Event Producer... Watching for event files in '{QUEUE_DIRECTORY}'. Press Ctrl+C to stop.")
     if not os.path.exists(QUEUE_DIRECTORY):
         os.makedirs(QUEUE_DIRECTORY)
 
@@ -66,7 +66,7 @@ def watch_and_produce(producer):
 
                     if topic:
                         producer.send(topic, key=driver_code.encode('utf-8'), value=event)
-                        print(f"  > Sent {session_type} event for {driver_code} to topic '{topic}'")
+                        print(f"Sent {session_type} event for {driver_code} to topic '{topic}'")
 
                     os.remove(filepath)
 
@@ -80,7 +80,7 @@ def watch_and_produce(producer):
             producer.flush()
 
         except KeyboardInterrupt:
-            print("\nShutting down producer.")
+            print("\nShutting down producer")
             break
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
