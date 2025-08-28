@@ -252,7 +252,7 @@ print("Baseline Value:",'$7 M')
 print("-"*50)
 
 # Driver-20 (Experienced Driver)
-driver='Esteben Ocon'
+driver='Esteban Ocon'
 print("Driver Name:",driver)
 #target_detail="Salary/Winnings"
 #print("Salary/Winnings:")
