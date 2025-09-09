@@ -4,7 +4,6 @@ import sys
 import os
 import time
 
-# 2025 Schedule (remaining races)
 F1_SCHEDULE_2025 = {
     "Hungary Grand Prix": ["2025-08-01",'2025-08-02','2025-08-03'],
     "Dutch Grand Prix": ["2025-08-29", "2025-08-30", "2025-08-31"],
@@ -20,8 +19,6 @@ F1_SCHEDULE_2025 = {
 }
 
 def check_and_launch_simulator():
-    # Checks the date and launches the generator and producer on race weekends
-    #today_str = "2025-09-05"
     today_str = datetime.date.today().isoformat()
     is_race_day = False
     current_race = None

@@ -2,16 +2,14 @@ import json
 from kafka import KafkaConsumer, KafkaProducer
 import time
 
-# --- Configuration ---
 KAFKA_BROKER = 'localhost:9092'
 REALTIME_INPUT_TOPICS = [
     'realtime-performance-practice',
     'realtime-performance-qualifying',
     'realtime-performance-race'
 ]
-STATE_TOPIC = 'driver-stock-values' # This is both our input for state and output for updates
+STATE_TOPIC = 'driver-stock-values'
 
-# --- In-Memory Data Store ---
 drivers_data = {}
 
 def apply_change(driver_code, percentage_change):
@@ -28,7 +26,6 @@ def process_realtime_message(data, topic):
 
     position = data.get('position') or data.get('finishingPosition')
 
-    # Using the same balanced weights
     if 'practice' in topic and position and position <= 3:
         apply_change(driver_code, 0.0003)
     elif 'qualifying' in topic and position:
@@ -46,13 +43,12 @@ def process_realtime_message(data, topic):
     return True
 
 def load_initial_state(broker):
-    """Reads the driver-stock-values topic to build the current market state."""
     print("Loading initial market state from Kafka...")
     state_consumer = KafkaConsumer(
         STATE_TOPIC,
         bootstrap_servers=broker,
         auto_offset_reset='earliest',
-        consumer_timeout_ms=10000, # Stop after 10s of no new messages
+        consumer_timeout_ms=10000,
         value_deserializer=lambda x: json.loads(x.decode('utf-8'))
     )
 
@@ -69,10 +65,8 @@ def load_initial_state(broker):
 
 
 def main():
-    # Phase 1: Load the last known state from our state topic
     load_initial_state(KAFKA_BROKER)
 
-    # Phase 2: Connect to real-time topics and start processing
     producer = KafkaProducer(
         bootstrap_servers=KAFKA_BROKER,
         value_serializer=lambda v: json.dumps(v).encode('utf-8')
@@ -81,12 +75,12 @@ def main():
     consumer = KafkaConsumer(
         *REALTIME_INPUT_TOPICS,
         bootstrap_servers=KAFKA_BROKER,
-        auto_offset_reset='latest', # IMPORTANT: Only process new messages
-        group_id='gridpulse-realtime-service', # A fixed group ID for this service
+        auto_offset_reset='latest',
+        group_id='gridpulse-realtime-service',
         value_deserializer=lambda x: json.loads(x.decode('utf-8'))
     )
 
-    print("\n🚀 Real-time Calculation Service is running and listening for live events...")
+    print("\nReal-time Calculation Service is running and listening for live events...")
     
     try:
         for message in consumer:
@@ -94,7 +88,6 @@ def main():
             if process_realtime_message(message.value, message.topic):
                 driver_code = message.value.get('driverCode')
                 if driver_code and driver_code in drivers_data:
-                    # Publish the ENTIRE updated driver object back to the state topic
                     producer.send(STATE_TOPIC, key=driver_code.encode('utf-8'), value=drivers_data[driver_code])
                     producer.flush()
 

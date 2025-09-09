@@ -2,7 +2,6 @@ import json
 from kafka import KafkaConsumer, KafkaProducer
 import time
 
-# --- Configuration ---
 KAFKA_BROKER = 'localhost:9092'
 INPUT_TOPICS = [
     'drivers-baseline-value',
@@ -12,10 +11,8 @@ INPUT_TOPICS = [
 ]
 OUTPUT_TOPIC = 'driver-stock-values'
 
-# --- In-Memory Data Store ---
 drivers_data = {}
 
-# Manual mapping from full driver names to 3-letter codes
 DRIVER_CODE_MAP = {
     "Max Verstappen": "VER", "Lewis Hamilton": "HAM", "Oscar Piastri": "PIA",
     "Lando Norris": "NOR", "Charles Leclerc": "LEC", "Fernando Alonso": "ALO",
@@ -50,20 +47,19 @@ def process_message(data, topic):
 
         position = data.get('position') or data.get('finishingPosition')
 
-        # --- ADJUSTED WEIGHTS ---
         if 'practice' in topic and position and position <= 3:
-            apply_change(driver_code, 0.0003)  # Reduced from 0.0005
+            apply_change(driver_code, 0.0003)
         elif 'qualifying' in topic and position:
             if position == 1:
-                apply_change(driver_code, 0.003)  # Reduced from 0.005
+                apply_change(driver_code, 0.003)
             elif position <= 3:
-                apply_change(driver_code, 0.001)  # Reduced from 0.002
+                apply_change(driver_code, 0.001)
         elif 'race' in topic:
             points = data.get('points', 0)
-            if points > 0: apply_change(driver_code, points * 0.0005)  # Reduced from 0.001
-            if data.get('fastestLap'): apply_change(driver_code, 0.0015)  # Reduced from 0.0025
-            if data.get('crashes', 0) > 0 or data.get('collisions', 0) > 0: apply_change(driver_code, -0.005) # Reduced from -0.02
-            if data.get('status') != 'Finished': apply_change(driver_code, -0.003) # Reduced from -0.015
+            if points > 0: apply_change(driver_code, points * 0.0005)
+            if data.get('fastestLap'): apply_change(driver_code, 0.0015)
+            if data.get('crashes', 0) > 0 or data.get('collisions', 0) > 0: apply_change(driver_code, -0.005)
+            if data.get('status') != 'Finished': apply_change(driver_code, -0.003)
 
 
 def main():
@@ -78,9 +74,8 @@ def main():
 
     print("Consuming all available historical messages. This will take a moment...")
 
-    # A more robust way to consume until topics are drained
     all_messages = []
-    end_time = time.time() + 15  # Poll for a maximum of 15 seconds
+    end_time = time.time() + 15
     while time.time() < end_time:
         records = consumer.poll(timeout_ms=1000)
         if not records:
@@ -91,12 +86,10 @@ def main():
     consumer.close()
     print(f"\nSuccessfully consumed {len(all_messages)} messages. Now processing...")
 
-    # Process baseline messages first
     for message in all_messages:
         if message.topic == 'drivers-baseline-value':
             process_message(message.value, message.topic)
 
-    # Process performance messages
     for message in all_messages:
         if message.topic != 'drivers-baseline-value':
             process_message(message.value, message.topic)

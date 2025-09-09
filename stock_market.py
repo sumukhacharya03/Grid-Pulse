@@ -9,29 +9,20 @@ import uuid
 import base64
 import os
 
-# --- Configuration ---
 KAFKA_BROKER = 'localhost:9092'
 STOCK_VALUES_TOPIC = 'driver-stock-values'
 
-# --- Data Store & Control Flags ---
 drivers_data = {}
 data_lock = threading.Lock()
 initial_load_complete = threading.Event()
 
-
-# --- Function to load local images ---
 def get_image_as_base64(driver_code):
-    """
-    Loads a driver's image from the local 'assets' folder and encodes it as a base64 string.
-    """
     image_path = os.path.join('assets', f'{driver_code}.jpg')
     if not os.path.exists(image_path):
-        # Fallback to a placeholder if the image is not found
         return "https://placehold.co/100x100/808080/FFFFFF?text=N/A"
 
     with open(image_path, "rb") as image_file:
         return f"data:image/jpeg;base64,{base64.b64encode(image_file.read()).decode()}"
-
 
 def kafka_consumer_thread():
     print("Dashboard consumer thread started...")
@@ -50,7 +41,6 @@ def kafka_consumer_thread():
             driver_code = data.get('driver_code')
             if driver_code:
                 with data_lock:
-                    # Load the local image for the driver
                     data['image_url'] = get_image_as_base64(driver_code)
                     drivers_data[driver_code] = data
 
@@ -61,29 +51,23 @@ def kafka_consumer_thread():
     except Exception as e:
         print(f"CRITICAL ERROR in dashboard consumer thread: {e}")
 
-
 def main():
     st.set_page_config(page_title="GridPulse F1 Stock Market", layout="wide")
 
-    # --- Custom CSS for Styling ---
     st.markdown("""
         <style>
-            /* Main header */
             .st-emotion-cache-18ni7ap {
                 font-size: 2.5rem;
                 font-weight: bold;
             }
-            /* Metric labels */
             .st-emotion-cache-1g6gooi {
                 font-size: 1.1rem;
                 color: #A0A0A0;
             }
-            /* Metric values */
             .st-emotion-cache-1ht1j8u {
                 font-size: 2rem;
                 font-weight: bold;
             }
-            /* Card styling */
             .driver-card {
                 background-color: #1E1E1E;
                 border-radius: 10px;
@@ -103,7 +87,7 @@ def main():
                 height: 75px;
                 border-radius: 50%;
                 margin-right: 15px;
-                object-fit: cover; /* Ensures the image covers the area without distortion */
+                object-fit: cover;
             }
             .driver-info {
                 flex-grow: 1;
@@ -126,7 +110,7 @@ def main():
         </style>
     """, unsafe_allow_html=True)
 
-    st.title("🏁 GridPulse F1 Stock Market")
+    st.title("GridPulse F1 Stock Market")
 
     if 'consumer_thread_started' not in st.session_state:
         thread = threading.Thread(target=kafka_consumer_thread, daemon=True)
@@ -149,7 +133,6 @@ def main():
         df = df.sort_values(by='current_value', ascending=False)
 
         with placeholder.container():
-            # --- Header Metrics ---
             st.subheader(f"Market Snapshot (Live Update: {datetime.now().strftime('%H:%M:%S')})")
             col1, col2, col3 = st.columns(3)
             col1.metric("Total Market Cap", f"${df['current_value'].sum():,.2f}")
@@ -160,7 +143,6 @@ def main():
 
             st.markdown("---")
 
-            # --- Driver Cards Layout ---
             for i in range(0, len(df), 2):
                 cols = st.columns(2)
                 for j in range(2):
@@ -182,7 +164,6 @@ def main():
                         cols[j].markdown(card_html, unsafe_allow_html=True)
 
         time.sleep(2)
-
 
 if __name__ == "__main__":
     main()
