@@ -21,6 +21,7 @@ F1_SCHEDULE_2025 = {
 
 def check_and_launch_simulator():
     # Checks the date and launches the generator and producer on race weekends
+    #today_str = "2025-09-05"
     today_str = datetime.date.today().isoformat()
     is_race_day = False
     current_race = None

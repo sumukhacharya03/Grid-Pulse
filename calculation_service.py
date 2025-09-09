@@ -50,23 +50,24 @@ def process_message(data, topic):
 
         position = data.get('position') or data.get('finishingPosition')
 
+        # --- ADJUSTED WEIGHTS ---
         if 'practice' in topic and position and position <= 3:
-            apply_change(driver_code, 0.0005)
+            apply_change(driver_code, 0.0003)  # Reduced from 0.0005
         elif 'qualifying' in topic and position:
             if position == 1:
-                apply_change(driver_code, 0.005)
+                apply_change(driver_code, 0.003)  # Reduced from 0.005
             elif position <= 3:
-                apply_change(driver_code, 0.002)
+                apply_change(driver_code, 0.001)  # Reduced from 0.002
         elif 'race' in topic:
             points = data.get('points', 0)
-            if points > 0: apply_change(driver_code, points * 0.001)
-            if data.get('fastestLap'): apply_change(driver_code, 0.0025)
-            if data.get('crashes', 0) > 0 or data.get('collisions', 0) > 0: apply_change(driver_code, -0.02)
-            if data.get('status') != 'Finished': apply_change(driver_code, -0.015)
+            if points > 0: apply_change(driver_code, points * 0.0005)  # Reduced from 0.001
+            if data.get('fastestLap'): apply_change(driver_code, 0.0015)  # Reduced from 0.0025
+            if data.get('crashes', 0) > 0 or data.get('collisions', 0) > 0: apply_change(driver_code, -0.005) # Reduced from -0.02
+            if data.get('status') != 'Finished': apply_change(driver_code, -0.003) # Reduced from -0.015
 
 
 def main():
-    print("Starting Calculation Service...")
+    print("Starting BATCH Calculation Service for HISTORICAL data...")
 
     consumer = KafkaConsumer(
         bootstrap_servers=KAFKA_BROKER,
@@ -75,20 +76,15 @@ def main():
     )
     consumer.subscribe(INPUT_TOPICS)
 
-    print("Consuming all available messages from topics. This will take a moment...")
+    print("Consuming all available historical messages. This will take a moment...")
 
+    # A more robust way to consume until topics are drained
     all_messages = []
-    empty_polls = 0
-    # Poll for messages. If we get 5 empty polls in a row, we assume the topics are drained.
-    while empty_polls < 5:
-        # Poll with a 1-second timeout
+    end_time = time.time() + 15  # Poll for a maximum of 15 seconds
+    while time.time() < end_time:
         records = consumer.poll(timeout_ms=1000)
         if not records:
-            empty_polls += 1
-            print(f"Polling... No new messages found ({empty_polls}/5)")
-            continue
-
-        empty_polls = 0  # Reset counter if we get messages
+            break
         for topic_partition, messages in records.items():
             all_messages.extend(messages)
 
@@ -119,8 +115,8 @@ def main():
     producer.flush()
     producer.close()
 
-    print(f"Successfully published all driver stock values.")
-    print("Calculation Service finished.")
+    print(f"Successfully published all driver stock values based on historical data.")
+    print("Historical Calculation Service finished.")
 
 
 if __name__ == "__main__":
