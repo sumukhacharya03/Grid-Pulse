@@ -1,0 +1,81 @@
+Driver Name: Max Verstappen
+Salary/Winnings: $72 M
+Endorsements: $6 M
+Baseline Value: $78 M
+--------------------------------------------------
+Driver Name: Lewis Hamilton
+Salary/Winnings: $60 M
+Endorsements: $20 M
+Baseline Value: $80 M
+--------------------------------------------------
+Driver Name: Oscar Piastri
+Salary/Winnings: $22 M
+Endorsements: None
+Baseline Value: $22 M
+--------------------------------------------------
+Driver Name: Lando Norris
+Salary/Winnings: $35 M
+Endorsements: None
+Baseline Value: $35 M
+--------------------------------------------------
+Driver Name: Charles Leclerc
+Salary/Winnings: $27 M
+Endorsements: None
+Baseline Value: $27 M
+--------------------------------------------------
+Driver Name: Fernando Alonso
+Salary/Winnings: $27.5 M
+Endorsements: None
+Baseline Value: $27 M
+--------------------------------------------------
+Driver Name: George Russell
+Salary/Winnings: $23 M
+Endorsements: None
+Baseline Value: $23 M
+--------------------------------------------------
+Driver Name: Pierre Gasly
+Salary/Winnings: $12 M
+Endorsements: None
+Baseline Value: $12 M
+--------------------------------------------------
+Driver Name: Carlos Sainz
+Salary/Winnings: $19 M
+Endorsements: None
+Baseline Value: $19 M
+--------------------------------------------------
+Driver Name: Kimi Antonelli
+Baseline Value: $2 M
+--------------------------------------------------
+Driver Name: Ollie Bearman
+Baseline Value: $0.75 M
+--------------------------------------------------
+Driver Name: Gabriel Bortoleto
+Baseline Value: $1 M
+--------------------------------------------------
+Driver Name: Jack Doohan
+Baseline Value: $1 M
+--------------------------------------------------
+Driver Name: Franco Colapinto
+Baseline Value: $0.75 M
+--------------------------------------------------
+Driver Name: Yuki Tsunoda
+Baseline Value: $0.75 M
+--------------------------------------------------
+Driver Name: Liam Lawson
+Baseline Value: $0.375 M
+--------------------------------------------------
+Driver Name: Isack Hadjar
+Baseline Value: $0.375 M
+--------------------------------------------------
+Driver Name: Lance Stroll
+Baseline Value: $2 M
+--------------------------------------------------
+Driver Name: Nico Hulkenberg
+Baseline Value: $7 M
+--------------------------------------------------
+Driver Name: Esteban Ocon
+Baseline Value: $6 M
+--------------------------------------------------
+Driver Name: Alex Albon
+Baseline Value: $3 M
+--------------------------------------------------

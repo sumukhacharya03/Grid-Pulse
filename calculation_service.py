@@ -3,7 +3,7 @@ from kafka import KafkaConsumer, KafkaProducer
 import time
 
 # --- Configuration ---
-KAFKA_BROKER = 'kafka:29092'
+KAFKA_BROKER = 'localhost:9092'
 INPUT_TOPICS = [
     'drivers-baseline-value',
     'historical-performance-practice',

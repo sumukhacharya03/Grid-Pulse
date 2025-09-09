@@ -4,7 +4,7 @@ import os
 from kafka import KafkaProducer
 from kafka.errors import NoBrokersAvailable
 
-KAFKA_BROKER = 'kafka:9092'
+KAFKA_BROKER = 'localhost:9092'
 QUEUE_DIRECTORY = 'generator/real_time/live_events_queue'
 MAX_CONNECTION_RETRIES = 10
 RETRY_DELAY_SECONDS = 5
