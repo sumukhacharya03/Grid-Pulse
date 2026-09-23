@@ -2,6 +2,8 @@
 
 Grid-Pulse turns Formula 1 drivers into tradeable stocks, priced from the **real 2025 season**. Every driver starts at a baseline valuation (salary + endorsements), and every session of every race weekend moves their price, live, through an **Apache Kafka** pipeline into a trading-terminal dashboard. Then you play the market with pretend money against everyone else on the server.
 
+**▶ Play it: https://sumukhacharya03.github.io/Grid-Pulse/**
+
 ![Grid-Pulse replaying the real 2025 Italian GP qualifying live](docs/dashboard.png)
 
 - **Real results**: the actual 2025 season, fetched with [FastF1](https://github.com/theOehrly/Fast-F1). Rounds 1–14 set the market; **Go live** replays rounds 15–24 session by session, exactly as they happened.
@@ -76,6 +78,18 @@ python dashboard.py --mode demo --open
 Open http://127.0.0.1:8000, join the game, buy a driver or two, and hit **Go live**.
 
 ## Put it online
+
+### Free: GitHub Pages (browser edition)
+
+```bash
+python scripts/publish_pages.py --push
+```
+
+This builds a version that runs entirely in the browser. The real season never changes, so the Python engine prices all of it up front into `market.json`. The page then replays those ticks with the same timing and messages as the server, and keeps the game in the visitor's browser. It publishes to the `gh-pages` branch, served at `https://<user>.github.io/Grid-Pulse/` (first time only: **Settings → Pages → Deploy from a branch → `gh-pages`**).
+
+The one difference from the full app: each visitor plays alone, against the market ($100,000 put into the Pulse Index at round 15) instead of a shared leaderboard.
+
+### Full app: Docker
 
 The `Dockerfile` builds the UI and runs the dashboard in **public mode**, which is demo mode plus guard rails for strangers:
 - no instant replays

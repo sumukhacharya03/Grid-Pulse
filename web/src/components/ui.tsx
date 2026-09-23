@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { arrow, pct, trendClass } from '../lib/format'
+import { arrow, driverImg, pct, trendClass } from '../lib/format'
 
 export function Avatar({ code, color, size = 48, className = '' }: { code: string; color: string; size?: number; className?: string }) {
   return (
@@ -8,7 +8,7 @@ export function Avatar({ code, color, size = 48, className = '' }: { code: strin
       style={{ width: size, height: size, boxShadow: `0 0 0 1.5px ${color}, 0 6px 18px -6px ${color}` }}
     >
       <img
-        src={`/drivers/${code}.jpg`}
+        src={driverImg(code)}
         alt=""
         loading="lazy"
         className="h-full w-full object-cover"

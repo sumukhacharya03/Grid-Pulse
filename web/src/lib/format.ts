@@ -1,3 +1,8 @@
+/** Driver photo URL (the Pages build is served from /Grid-Pulse/, not /). */
+export function driverImg(code: string): string {
+  return `${import.meta.env.BASE_URL}drivers/${code}.jpg`
+}
+
 export function money(value: number, digits = 2): string {
   const abs = Math.abs(value)
   if (abs >= 1e9) return `$${(value / 1e9).toFixed(digits)}B`

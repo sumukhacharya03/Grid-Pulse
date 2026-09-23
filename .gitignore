@@ -22,3 +22,4 @@ web/dist/
 # Local data
 gridpulse.db*
 .fastf1-cache/
+web/dist-static/

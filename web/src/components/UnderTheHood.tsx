@@ -1,5 +1,7 @@
+import type { Mode } from '../lib/types'
+
 interface Props {
-  mode: 'kafka' | 'demo'
+  mode: Mode
   data: 'real' | 'simulated'
   ticks: number
   liveTicks: number
@@ -26,7 +28,7 @@ export default function UnderTheHood({ mode, data, ticks, liveTicks }: Props) {
         <h2 id="uth-title" className="text-xl font-black uppercase italic tracking-tight">Under the hood</h2>
         <p className="num text-xs text-faint">
           {ticks.toLocaleString()} price moves · {liveTicks.toLocaleString()} live · {data === 'real' ? 'real 2025 results' : 'simulated season'} ·{' '}
-          {mode === 'kafka' ? 'streamed from Kafka' : 'demo mode, priced in-process'}
+          {mode === 'kafka' ? 'streamed from Kafka' : mode === 'static' ? 'browser edition, priced ahead by the Python engine' : 'demo mode, priced in-process'}
         </p>
       </div>
 

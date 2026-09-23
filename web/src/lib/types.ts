@@ -91,8 +91,10 @@ export interface SimStatus {
 
 export type DataSource = 'real' | 'simulated'
 
+export type Mode = 'kafka' | 'demo' | 'static'
+
 export interface Snapshot {
-  mode: 'kafka' | 'demo'
+  mode: Mode
   data: DataSource
   public: boolean
   game: { starting_cash: number }

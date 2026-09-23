@@ -1,4 +1,6 @@
 import { useEffect, useReducer } from 'react'
+import { ApiError } from './apiError'
+import { localServer } from './localServer'
 import type { ServerMessage, SimStatus, Snapshot, Tick } from './types'
 
 export type Connection = 'connecting' | 'open' | 'reconnecting'
@@ -63,10 +65,31 @@ const initial: State = {
   connection: 'connecting', snapshot: null, ticks: [], seen: new Set(), flashes: {}, liveCount: 0, lastLiveAt: 0, gameEvents: 0,
 }
 
+/** The GitHub Pages build has no server: the market replays in the browser. */
+export const STATIC = import.meta.env.VITE_STATIC === '1'
+
 export function useMarket() {
   const [state, dispatch] = useReducer(reducer, initial)
 
   useEffect(() => {
+    if (!STATIC) return
+    let unsubscribe = () => {}
+    let disposed = false
+    localServer()
+      .ready.then(() => {
+        if (disposed) return
+        dispatch({ type: 'connection', value: 'open' })
+        unsubscribe = localServer().subscribe((msg) => dispatch({ type: 'message', msg }))
+      })
+      .catch(() => dispatch({ type: 'connection', value: 'reconnecting' }))
+    return () => {
+      disposed = true
+      unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (STATIC) return
     let socket: WebSocket | null = null
     let retry: ReturnType<typeof setTimeout> | undefined
     let attempt = 0
@@ -105,6 +128,10 @@ export function useMarket() {
 }
 
 export async function api<T = unknown>(path: string, body?: unknown, init: RequestInit = {}): Promise<T> {
+  if (STATIC) {
+    const headers = (init.headers ?? {}) as Record<string, string>
+    return (await localServer().request(init.method ?? 'POST', path, body, headers)) as T
+  }
   const res = await fetch(path, {
     ...init,
     method: init.method ?? 'POST',
@@ -123,10 +150,4 @@ export async function api<T = unknown>(path: string, body?: unknown, init: Reque
   return (await res.json()) as T
 }
 
-export class ApiError extends Error {
-  status: number
-  constructor(status: number, message: string) {
-    super(message)
-    this.status = status
-  }
-}
+export { ApiError }

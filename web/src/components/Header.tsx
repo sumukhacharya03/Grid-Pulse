@@ -1,9 +1,10 @@
+import type { Mode } from '../lib/types'
 import type { Connection } from '../lib/useMarket'
 import { useNow } from '../lib/hooks'
 
 interface Props {
   connection: Connection
-  mode: 'kafka' | 'demo' | null
+  mode: Mode | null
   data: 'real' | 'simulated' | null
   live: boolean
   round: number
@@ -71,9 +72,13 @@ export default function Header({ connection, mode, data, live, round, totalRound
           {mode && (
             <span
               className="hidden rounded-md border border-line px-2 py-1 text-[0.65rem] font-bold uppercase tracking-widest text-dim sm:inline"
-              title={mode === 'kafka' ? 'Streaming from the Kafka pipeline' : 'Demo mode: market built in-process, no Kafka broker'}
+              title={
+                mode === 'kafka' ? 'Streaming from the Kafka pipeline'
+                  : mode === 'static' ? 'Runs entirely in your browser: prices were computed by the Python engine'
+                    : 'Demo mode: market built in-process, no Kafka broker'
+              }
             >
-              {mode === 'kafka' ? 'Kafka stream' : 'Demo mode'}
+              {mode === 'kafka' ? 'Kafka stream' : mode === 'static' ? 'Browser edition' : 'Demo mode'}
             </span>
           )}
           <span role="status" className={`flex items-center gap-2 text-xs font-bold uppercase tracking-widest ${status.text}`}>

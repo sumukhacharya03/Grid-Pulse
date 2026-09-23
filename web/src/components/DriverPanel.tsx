@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useMemo, useRef, type ReactNode } from 'react'
-import { money, ordinal, pct, sessionShort, withAlpha } from '../lib/format'
+import { driverImg, money, ordinal, pct, sessionShort, withAlpha } from '../lib/format'
 import { useTweened } from '../lib/hooks'
 import type { DriverView, MarketView } from '../lib/market'
 import type { Tick } from '../lib/types'
@@ -110,7 +110,7 @@ function Panel({ driver: d, order, onClose, onSelect, trade }: {
             {d.number}
           </span>
           <img
-            src={`/drivers/${d.code}.jpg`}
+            src={driverImg(d.code)}
             alt={d.name}
             className="absolute bottom-0 right-6 -z-10 h-[88%] w-auto object-contain opacity-95 [mask-image:radial-gradient(ellipse_65%_75%_at_50%_35%,black_45%,transparent_78%)]"
             style={{ mixBlendMode: 'luminosity' }}

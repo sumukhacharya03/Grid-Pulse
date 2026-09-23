@@ -1,4 +1,5 @@
 import type { GameApi } from '../lib/game'
+import { STATIC } from '../lib/useMarket'
 import { money } from '../lib/format'
 import type { MarketView } from '../lib/market'
 import { Change } from './ui'
@@ -11,8 +12,8 @@ export default function Leaderboard({ game, market }: { game: GameApi; market: M
   return (
     <section className="panel flex h-full flex-col p-5" aria-labelledby="leaderboard-title">
       <div className="flex items-baseline justify-between">
-        <h2 id="leaderboard-title" className="text-xl font-black uppercase italic tracking-tight">Leaderboard</h2>
-        <span className="text-xs text-faint">{board ? `${board.players} player${board.players === 1 ? '' : 's'}` : ''}</span>
+        <h2 id="leaderboard-title" className="text-xl font-black uppercase italic tracking-tight">{STATIC ? 'You vs the market' : 'Leaderboard'}</h2>
+        {!STATIC && <span className="text-xs text-faint">{board ? `${board.players} player${board.players === 1 ? '' : 's'}` : ''}</span>}
       </div>
       {!board || board.top.length === 0 ? (
         <p className="flex flex-1 items-center justify-center py-8 text-center text-sm text-faint">No players yet. Be the first on the board.</p>
@@ -46,10 +47,16 @@ export default function Leaderboard({ game, market }: { game: GameApi; market: M
         </ol>
       )}
       {meOutside && <p className="mt-2 border-t border-line pt-2 text-sm text-dim">You're <span className="num font-semibold text-ink">#{board!.me}</span> of {board!.players}</p>}
-      {board && board.players < 10 && (
+      {STATIC ? (
         <p className="mt-auto pt-4 text-xs text-faint">
-          Everyone on this server trades the same market. Share the link to challenge friends.
+          Can you beat the market? It starts with the same $100,000, put into the Pulse Index at round 15. Your game is saved in this browser.
         </p>
+      ) : (
+        board && board.players < 10 && (
+          <p className="mt-auto pt-4 text-xs text-faint">
+            Everyone on this server trades the same market. Share the link to challenge friends.
+          </p>
+        )
       )}
     </section>
   )

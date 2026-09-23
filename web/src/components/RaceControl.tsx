@@ -3,14 +3,14 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { sessionShort, shortDate } from '../lib/format'
 import { useNow } from '../lib/hooks'
 import type { DriverView, MarketView } from '../lib/market'
-import type { DataSource, Race, SimStatus, Tick } from '../lib/types'
+import type { DataSource, Mode, Race, SimStatus, Tick } from '../lib/types'
 import { api } from '../lib/useMarket'
 import { Avatar, Change, Segmented } from './ui'
 
 type Speed = 'normal' | 'fast' | 'instant'
 
 interface Props {
-  mode: 'kafka' | 'demo'
+  mode: Mode
   data: DataSource
   isPublic: boolean
   sim: SimStatus
@@ -129,7 +129,7 @@ export default function RaceControl({ mode, data, isPublic, sim, nextRace, calen
               <div className="text-4xl" aria-hidden="true">🏁</div>
               <h3 className="mt-2 text-xl font-bold">Season complete</h3>
               <p className="mt-1 max-w-xs text-sm text-dim">All 24 rounds are priced in.</p>
-              {mode === 'demo' ? (
+              {mode !== 'kafka' ? (
                 <button onClick={() => call('/api/reset')} disabled={pending} className="mt-4 rounded-lg border border-line-strong px-4 py-2 text-sm font-semibold hover:bg-white/5">
                   Reset to mid-season
                 </button>
