@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest
+httpx
+fastf1   # only for generator/real_data/fetch_real_results.py

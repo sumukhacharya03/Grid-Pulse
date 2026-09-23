@@ -1,114 +1,86 @@
-import json
-from kafka import KafkaConsumer, KafkaProducer
-import time
+"""Batch job: builds the market from the baseline values plus every
+historical session, then publishes it as a fresh market epoch.
 
-KAFKA_BROKER = 'localhost:9092'
-INPUT_TOPICS = [
-    'drivers-baseline-value',
-    'historical-performance-practice',
-    'historical-performance-qualifying',
-    'historical-performance-race'
-]
-OUTPUT_TOPIC = 'driver-stock-values'
+Safe to re-run: duplicate messages (e.g. from running a producer twice) are
+collapsed, and consumers discard the previous epoch. Only history from the
+chosen data source is used, so real and simulated runs can share a broker."""
+import argparse
 
-drivers_data = {}
-
-DRIVER_CODE_MAP = {
-    "Max Verstappen": "VER", "Lewis Hamilton": "HAM", "Oscar Piastri": "PIA",
-    "Lando Norris": "NOR", "Charles Leclerc": "LEC", "Fernando Alonso": "ALO",
-    "George Russell": "RUS", "Pierre Gasly": "GAS", "Carlos Sainz": "SAI",
-    "Kimi Antonelli": "ANT", "Ollie Bearman": "BEA", "Gabriel Bortoleto": "BOR",
-    "Jack Doohan": "DOO", "Franco Colapinto": "COL", "Yuki Tsunoda": "TSU",
-    "Liam Lawson": "LAW", "Isack Hadjar": "HAD", "Lance Stroll": "STR",
-    "Nico Hulkenberg": "HUL", "Esteban Ocon": "OCO", "Alex Albon": "ALB"
-}
+from gridpulse import roster
+from gridpulse.config import (DATA_SOURCE, DATA_SOURCES, HISTORICAL_TOPICS, TOPIC_BASELINE, TOPIC_MARKET_TICKS,
+                              TOPIC_STOCK_VALUES)
+from gridpulse.kafka_io import ensure_topics, make_producer, read_to_end
+from gridpulse.market import MarketEngine, result_sort_key, tick_id
+from gridpulse.season import normalize_session
 
 
-def apply_change(driver_code, percentage_change):
-    if driver_code in drivers_data:
-        drivers_data[driver_code]['current_value'] *= (1 + percentage_change)
+def collect_baselines(messages):
+    baselines = {}
+    for m in messages:
+        data = m.value
+        code = data.get("driver_code") or roster.code_for_name(data.get("driver_name"))
+        if code in roster.DRIVERS and data.get("baseline_value") is not None:
+            baselines[code] = (roster.DRIVERS[code]["name"], data["baseline_value"])  # latest wins
+        else:
+            print(f"Ignoring baseline for unknown driver: {data}")
+    return baselines
 
 
-def process_message(data, topic):
-    if topic == 'drivers-baseline-value':
-        driver_name = data.get('driver_name')
-        driver_code = DRIVER_CODE_MAP.get(driver_name)
-        if driver_code and driver_code not in drivers_data:
-            drivers_data[driver_code] = {
-                'driver_name': driver_name,
-                'driver_code': driver_code,
-                'baseline_value': data.get('baseline_value'),
-                'current_value': data.get('baseline_value')
-            }
-    else:
-        driver_code = data.get('driverCode')
-        if not driver_code or driver_code not in drivers_data:
-            return
-
-        position = data.get('position') or data.get('finishingPosition')
-
-        if 'practice' in topic and position and position <= 3:
-            apply_change(driver_code, 0.0003)
-        elif 'qualifying' in topic and position:
-            if position == 1:
-                apply_change(driver_code, 0.003)
-            elif position <= 3:
-                apply_change(driver_code, 0.001)
-        elif 'race' in topic:
-            points = data.get('points', 0)
-            if points > 0: apply_change(driver_code, points * 0.0005)
-            if data.get('fastestLap'): apply_change(driver_code, 0.0015)
-            if data.get('crashes', 0) > 0 or data.get('collisions', 0) > 0: apply_change(driver_code, -0.005)
-            if data.get('status') != 'Finished': apply_change(driver_code, -0.003)
+def collect_results(messages, source):
+    """One result per (round, session, driver) from `source`, latest wins, in race order."""
+    unique = {}
+    for m in messages:
+        data = m.value
+        if data.get("data_source", "simulated") != source:
+            continue
+        try:
+            key = tick_id(data["round"], normalize_session(data.get("session_type")), data["driverCode"])
+        except (KeyError, ValueError):
+            print(f"Ignoring malformed result on {m.topic}: {data}")
+            continue
+        unique[key] = data
+    return sorted(unique.values(), key=result_sort_key)
 
 
 def main():
-    print("Starting BATCH Calculation Service for HISTORICAL data...")
+    parser = argparse.ArgumentParser(description="Build the market from baseline + historical data")
+    parser.add_argument("--data", choices=DATA_SOURCES, default=DATA_SOURCE,
+                        help=f"price the real or the simulated history (default: {DATA_SOURCE})")
+    args = parser.parse_args()
+    print(f"Starting BATCH Calculation Service for HISTORICAL data ({args.data})...")
+    ensure_topics()
 
-    consumer = KafkaConsumer(
-        bootstrap_servers=KAFKA_BROKER,
-        auto_offset_reset='earliest',
-        value_deserializer=lambda x: json.loads(x.decode('utf-8'))
-    )
-    consumer.subscribe(INPUT_TOPICS)
+    print("Consuming all available baseline and historical messages...")
+    baseline_messages = read_to_end([TOPIC_BASELINE])
+    result_messages = read_to_end(HISTORICAL_TOPICS)
+    print(f"Consumed {len(baseline_messages)} baseline and {len(result_messages)} result messages.")
 
-    print("Consuming all available historical messages. This will take a moment...")
+    baselines = collect_baselines(baseline_messages)
+    if not baselines:
+        raise SystemExit("No baseline values found. Run baseline_market_value/producer1.py first.")
+    missing = sorted(set(roster.DRIVERS) - set(baselines))
+    if missing:
+        print(f"WARNING: no baseline value for {', '.join(missing)}; they will not be traded.")
 
-    all_messages = []
-    end_time = time.time() + 15
-    while time.time() < end_time:
-        records = consumer.poll(timeout_ms=1000)
-        if not records:
-            break
-        for topic_partition, messages in records.items():
-            all_messages.extend(messages)
+    engine = MarketEngine()
+    epoch_record = engine.start_epoch(baselines)
+    results = collect_results(result_messages, args.data)
+    ticks = [t for t in (engine.apply(r) for r in results) if t]
+    print(f"Processed {len(results)} unique results into {len(ticks)} price moves for {len(baselines)} drivers.")
 
-    consumer.close()
-    print(f"\nSuccessfully consumed {len(all_messages)} messages. Now processing...")
-
-    for message in all_messages:
-        if message.topic == 'drivers-baseline-value':
-            process_message(message.value, message.topic)
-
-    for message in all_messages:
-        if message.topic != 'drivers-baseline-value':
-            process_message(message.value, message.topic)
-
-    print(f"Processing complete. Calculated values for {len(drivers_data)} drivers.")
-
-    producer = KafkaProducer(
-        bootstrap_servers=KAFKA_BROKER,
-        value_serializer=lambda v: json.dumps(v).encode('utf-8')
-    )
-
-    print("Publishing final stock values to 'driver-stock-values'...")
-    for driver_code, data in drivers_data.items():
-        producer.send(OUTPUT_TOPIC, key=driver_code.encode('utf-8'), value=data)
-
+    producer = make_producer()
+    producer.send(TOPIC_MARKET_TICKS, key="epoch", value=epoch_record)
+    for tick in ticks:
+        producer.send(TOPIC_MARKET_TICKS, key=tick["driver_code"], value=tick)
+    for code in engine.drivers:
+        producer.send(TOPIC_STOCK_VALUES, key=code, value=engine.state_message(code))
     producer.flush()
     producer.close()
 
-    print(f"Successfully published all driver stock values based on historical data.")
+    print(f"Published market epoch {engine.epoch} to '{TOPIC_MARKET_TICKS}' and '{TOPIC_STOCK_VALUES}'.")
+    for code, d in sorted(engine.drivers.items(), key=lambda kv: -kv[1]["current_value"]):
+        change = (d["current_value"] / d["baseline_value"] - 1) * 100
+        print(f"  {code}  ${d['current_value']:>14,.0f}  {change:+6.2f}%")
     print("Historical Calculation Service finished.")
 
 

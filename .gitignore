@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+vnev/
+.venv/
+
+# Runtime state from the live pipeline
+generator/real_time/live_events_queue/
+generator/real_time/weekend_state/
+
+# Web
+web/node_modules/
+web/dist/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Local data
+gridpulse.db*
+.fastf1-cache/

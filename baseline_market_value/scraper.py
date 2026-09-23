@@ -1,272 +1,79 @@
 import requests
 from bs4 import BeautifulSoup
 
-# This function is used to extract the Drivers Full Name
-def get_driver_name(url,driver):
-    response=requests.get(url)
-    soup=BeautifulSoup(response.text,'html.parser')
+# Scrapes each driver's Salary/Winnings + Endorsements from their Forbes
+# profile. Drivers without a profile use a hand-set estimate. Run using
+# "python scraper.py | python output.py" to write the CSV.
 
-    h1_tags=soup.find_all('h1')
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                         "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"}
 
-    for h1 in h1_tags:
-        if driver in h1.get_text():
-            return h1.get_text(strip=True)
-    return None
+# (driver, Forbes profile slug or None, fallback value in $M)
+# Fallbacks are the values scraped in Sept 2025, used when Forbes is
+# unreachable or blocks the request.
+DRIVERS = [
+    ("Max Verstappen", "max-verstappen", 78),
+    ("Lewis Hamilton", "lewis-hamilton", 80),
+    ("Oscar Piastri", "oscar-piastri", 22),
+    ("Lando Norris", "lando-norris", 35),
+    ("Charles Leclerc", "charles-leclerc", 27),
+    ("Fernando Alonso", "fernando-alonso", 27.5),
+    ("George Russell", "george-russell-1", 23),
+    ("Pierre Gasly", "pierre-gasly", 12),
+    ("Carlos Sainz", "carlos-sainz", 19),
+    ("Kimi Antonelli", None, 2),  # Rookie
+    ("Ollie Bearman", None, 0.75),  # Rookie
+    ("Gabriel Bortoleto", None, 1),  # Rookie
+    ("Jack Doohan", None, 1),  # 2nd year Driver
+    ("Franco Colapinto", None, 0.75),  # 2nd year Driver
+    ("Yuki Tsunoda", None, 0.75),  # Experienced Driver
+    ("Liam Lawson", None, 0.375),  # 2nd year Driver
+    ("Isack Hadjar", None, 0.375),  # Rookie
+    ("Lance Stroll", None, 2),  # Experienced Driver
+    ("Nico Hulkenberg", None, 7),  # Experienced Driver
+    ("Esteban Ocon", None, 6),  # Experienced Driver
+    ("Alex Albon", None, 3),  # Experienced Driver
+]
+
+
+# Fetches the page once per driver (it used to be downloaded three times)
+def fetch_profile(slug):
+    try:
+        response = requests.get(f"https://www.forbes.com/profile/{slug}/", headers=HEADERS, timeout=15)
+        response.raise_for_status()
+        return BeautifulSoup(response.text, "html.parser")
+    except requests.RequestException as e:
+        print(f"# Could not fetch Forbes profile '{slug}': {e}")
+        return None
+
 
 # This function is used to extract the drivers particular details like Salary etc.
-def get_details(url,target_detail):
-    response=requests.get(url)
-    soup=BeautifulSoup(response.text,'html.parser')
-
-    dt_tags=soup.find_all('dt')
-
-    for dt in dt_tags:
+def get_details(soup, target_detail):
+    for dt in soup.find_all("dt"):
         if target_detail in dt.get_text():
-            dd=dt.find_next_sibling('dd')
-            if dd:
-                return dd.get_text(strip=True)
-            else:
-                return None
+            dd = dt.find_next_sibling("dd")
+            return dd.get_text(strip=True) if dd else None
     return None
 
-# This function is used to calculate the Baseline Net Value of the Driver
-def get_baseline_market_value(url,driver):
-    salary_winnings=get_details(url,"Salary/Winnings")
-    if salary_winnings:
-        salary_value=float(salary_winnings.replace(" ","").replace("$","").split("M")[0])
-    else:
-        salary_value=0
-    endorsements=get_details(url,"Endorsements")
-    if endorsements:
-        endorsement_value=float(endorsements.replace(" ","").replace("$","").split("M")[0])
-    else:
-        endorsement_value=0
-    total=salary_value+endorsement_value
-    return f"${int(total)} M"
 
-# Drivers
+def to_millions(text):
+    # "$27.5 M" -> 27.5 (keeps the decimals int() used to drop)
+    if not text:
+        return 0.0
+    return float(text.replace(" ", "").replace("$", "").split("M")[0])
 
-# Driver-1
-url="https://www.forbes.com/profile/max-verstappen/"
-driver='Max Verstappen'
-print("Driver Name:",get_driver_name(url,driver))
-target_detail="Salary/Winnings"
-print("Salary/Winnings:",get_details(url,target_detail))
-target_detail="Endorsements"
-print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",get_baseline_market_value(url,driver))
-print("-"*50)
 
-# Driver-2
-url="https://www.forbes.com/profile/lewis-hamilton/"
-driver='Lewis Hamilton'
-print("Driver Name:",get_driver_name(url,driver))
-target_detail="Salary/Winnings"
-print("Salary/Winnings:",get_details(url,target_detail))
-target_detail="Endorsements"
-print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",get_baseline_market_value(url,driver))
-print("-"*50)
+for driver, slug, fallback in DRIVERS:
+    salary = endorsements = None
+    soup = fetch_profile(slug) if slug else None
+    if soup is not None:
+        salary = get_details(soup, "Salary/Winnings")
+        endorsements = get_details(soup, "Endorsements")
+    total = to_millions(salary) + to_millions(endorsements) if salary else fallback
 
-# Driver-3
-url="https://www.forbes.com/profile/oscar-piastri/"
-driver='Oscar Piastri'
-print("Driver Name:",get_driver_name(url,driver))
-target_detail="Salary/Winnings"
-print("Salary/Winnings:",get_details(url,target_detail))
-target_detail="Endorsements"
-print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",get_baseline_market_value(url,driver))
-print("-"*50)
-
-# Driver-4
-url="https://www.forbes.com/profile/lando-norris/"
-driver='Lando Norris'
-print("Driver Name:",get_driver_name(url,driver))
-target_detail="Salary/Winnings"
-print("Salary/Winnings:",get_details(url,target_detail))
-target_detail="Endorsements"
-print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",get_baseline_market_value(url,driver))
-print("-"*50)
-
-# Driver-5
-url="https://www.forbes.com/profile/charles-leclerc/"
-driver='Charles Leclerc'
-print("Driver Name:",get_driver_name(url,driver))
-target_detail="Salary/Winnings"
-print("Salary/Winnings:",get_details(url,target_detail))
-target_detail="Endorsements"
-print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",get_baseline_market_value(url,driver))
-print("-"*50)
-
-# Driver-6
-url="https://www.forbes.com/profile/fernando-alonso/"
-driver='Fernando Alonso'
-print("Driver Name:",get_driver_name(url,driver))
-target_detail="Salary/Winnings"
-print("Salary/Winnings:",get_details(url,target_detail))
-target_detail="Endorsements"
-print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",get_baseline_market_value(url,driver))
-print("-"*50)
-
-# Driver-7
-url="https://www.forbes.com/profile/george-russell-1/"
-driver='George Russell'
-print("Driver Name:",get_driver_name(url,driver))
-target_detail="Salary/Winnings"
-print("Salary/Winnings:",get_details(url,target_detail))
-target_detail="Endorsements"
-print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",get_baseline_market_value(url,driver))
-print("-"*50)
-
-# Driver-8
-url="https://www.forbes.com/profile/pierre-gasly/"
-driver='Pierre Gasly'
-print("Driver Name:",get_driver_name(url,driver))
-target_detail="Salary/Winnings"
-print("Salary/Winnings:",get_details(url,target_detail))
-target_detail="Endorsements"
-print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",get_baseline_market_value(url,driver))
-print("-"*50)
-
-# Driver-9
-url="https://www.forbes.com/profile/carlos-sainz/"
-driver='Carlos Sainz'
-print("Driver Name:",get_driver_name(url,driver))
-target_detail="Salary/Winnings"
-print("Salary/Winnings:",get_details(url,target_detail))
-target_detail="Endorsements"
-print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",get_baseline_market_value(url,driver))
-print("-"*50)
-
-# Driver-10 (Rookie)
-# url="https://www.forbes.com/profile/?"
-driver='Kimi Antonelli'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$2 M')
-print("-"*50)
-
-# Driver-11 (Rookie)
-# url="https://www.forbes.com/profile/?"
-driver='Ollie Bearman'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$0.75 M')
-print("-"*50)
-
-# Driver-12 (Rookie)
-# url="https://www.forbes.com/profile/?"
-driver='Gabriel Bortoleto'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$1 M')
-print("-"*50)
-
-# Driver-13 (2nd year Driver)
-# url="https://www.forbes.com/profile/?"
-driver='Jack Doohan'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$1 M')
-print("-"*50)
-
-# Driver-14 (2nd year Driver)
-# url="https://www.forbes.com/profile/?"
-driver='Franco Colapinto'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$0.75 M')
-print("-"*50)
-
-# Driver-15 (Experienced Driver)
-# url="https://www.forbes.com/profile/?"
-driver='Yuki Tsunoda'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$0.75 M')
-print("-"*50)
-
-# Driver-16 (2nd year Driver)
-driver='Liam Lawson'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$0.375 M')
-print("-"*50)
-
-# Driver-17 (Rookie)
-driver='Isack Hadjar'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$0.375 M')
-print("-"*50)
-
-# Driver-18 (Experienced Driver)
-driver='Lance Stroll'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$2 M')
-print("-"*50)
-
-# Driver-19 (Experienced Driver)
-driver='Nico Hulkenberg'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$7 M')
-print("-"*50)
-
-# Driver-20 (Experienced Driver)
-driver='Esteban Ocon'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$6 M')
-print("-"*50)
-
-# Driver-21 (Experienced Driver)
-driver='Alex Albon'
-print("Driver Name:",driver)
-#target_detail="Salary/Winnings"
-#print("Salary/Winnings:")
-#target_detail="Endorsements"
-#print("Endorsements:",get_details(url,target_detail))
-print("Baseline Value:",'$3 M')
-print("-"*50)
+    print("Driver Name:", driver)
+    if slug:
+        print("Salary/Winnings:", salary)
+        print("Endorsements:", endorsements)
+    print(f"Baseline Value: ${total:g} M")
+    print("-" * 50)

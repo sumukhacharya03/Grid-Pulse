@@ -1,0 +1,923 @@
+{
+  "season": 2025,
+  "round": 6,
+  "raceName": "Miami Grand Prix",
+  "source": "fastf1",
+  "practice1Results": [
+    {
+      "position": 1,
+      "driverCode": "PIA",
+      "team": "McLaren",
+      "fastest_time": "1:27.128",
+      "fastestLap": true
+    },
+    {
+      "position": 2,
+      "driverCode": "LEC",
+      "team": "Ferrari",
+      "fastest_time": "1:27.484",
+      "fastestLap": false
+    },
+    {
+      "position": 3,
+      "driverCode": "VER",
+      "team": "Red Bull",
+      "fastest_time": "1:27.558",
+      "fastestLap": false
+    },
+    {
+      "position": 4,
+      "driverCode": "SAI",
+      "team": "Williams",
+      "fastest_time": "1:27.678",
+      "fastestLap": false
+    },
+    {
+      "position": 5,
+      "driverCode": "ALB",
+      "team": "Williams",
+      "fastest_time": "1:27.955",
+      "fastestLap": false
+    },
+    {
+      "position": 6,
+      "driverCode": "HAD",
+      "team": "RB",
+      "fastest_time": "1:27.968",
+      "fastestLap": false
+    },
+    {
+      "position": 7,
+      "driverCode": "RUS",
+      "team": "Mercedes",
+      "fastest_time": "1:28.058",
+      "fastestLap": false
+    },
+    {
+      "position": 8,
+      "driverCode": "TSU",
+      "team": "Red Bull",
+      "fastest_time": "1:28.155",
+      "fastestLap": false
+    },
+    {
+      "position": 9,
+      "driverCode": "ANT",
+      "team": "Mercedes",
+      "fastest_time": "1:28.227",
+      "fastestLap": false
+    },
+    {
+      "position": 10,
+      "driverCode": "ALO",
+      "team": "Aston Martin",
+      "fastest_time": "1:28.243",
+      "fastestLap": false
+    },
+    {
+      "position": 11,
+      "driverCode": "LAW",
+      "team": "RB",
+      "fastest_time": "1:28.374",
+      "fastestLap": false
+    },
+    {
+      "position": 12,
+      "driverCode": "NOR",
+      "team": "McLaren",
+      "fastest_time": "1:28.391",
+      "fastestLap": false
+    },
+    {
+      "position": 13,
+      "driverCode": "HAM",
+      "team": "Ferrari",
+      "fastest_time": "1:28.556",
+      "fastestLap": false
+    },
+    {
+      "position": 14,
+      "driverCode": "HUL",
+      "team": "Sauber",
+      "fastest_time": "1:28.573",
+      "fastestLap": false
+    },
+    {
+      "position": 15,
+      "driverCode": "BOR",
+      "team": "Sauber",
+      "fastest_time": "1:28.771",
+      "fastestLap": false
+    },
+    {
+      "position": 16,
+      "driverCode": "BEA",
+      "team": "Haas",
+      "fastest_time": "1:28.996",
+      "fastestLap": false
+    },
+    {
+      "position": 17,
+      "driverCode": "GAS",
+      "team": "Alpine",
+      "fastest_time": "1:29.084",
+      "fastestLap": false
+    },
+    {
+      "position": 18,
+      "driverCode": "OCO",
+      "team": "Haas",
+      "fastest_time": "1:29.179",
+      "fastestLap": false
+    },
+    {
+      "position": 19,
+      "driverCode": "DOO",
+      "team": "Alpine",
+      "fastest_time": "1:29.357",
+      "fastestLap": false
+    },
+    {
+      "position": 20,
+      "driverCode": "STR",
+      "team": "Aston Martin",
+      "fastest_time": "1:29.362",
+      "fastestLap": false
+    }
+  ],
+  "sprintQualifyingResults": [
+    {
+      "position": 1,
+      "driverCode": "ANT",
+      "team": "Mercedes",
+      "time": null
+    },
+    {
+      "position": 2,
+      "driverCode": "PIA",
+      "team": "McLaren",
+      "time": null
+    },
+    {
+      "position": 3,
+      "driverCode": "NOR",
+      "team": "McLaren",
+      "time": null
+    },
+    {
+      "position": 4,
+      "driverCode": "VER",
+      "team": "Red Bull",
+      "time": null
+    },
+    {
+      "position": 5,
+      "driverCode": "RUS",
+      "team": "Mercedes",
+      "time": null
+    },
+    {
+      "position": 6,
+      "driverCode": "LEC",
+      "team": "Ferrari",
+      "time": null
+    },
+    {
+      "position": 7,
+      "driverCode": "HAM",
+      "team": "Ferrari",
+      "time": null
+    },
+    {
+      "position": 8,
+      "driverCode": "ALB",
+      "team": "Williams",
+      "time": null
+    },
+    {
+      "position": 9,
+      "driverCode": "HAD",
+      "team": "RB",
+      "time": null
+    },
+    {
+      "position": 10,
+      "driverCode": "ALO",
+      "team": "Aston Martin",
+      "time": null
+    },
+    {
+      "position": 11,
+      "driverCode": "HUL",
+      "team": "Sauber",
+      "time": null
+    },
+    {
+      "position": 12,
+      "driverCode": "OCO",
+      "team": "Haas",
+      "time": null
+    },
+    {
+      "position": 13,
+      "driverCode": "GAS",
+      "team": "Alpine",
+      "time": null
+    },
+    {
+      "position": 14,
+      "driverCode": "LAW",
+      "team": "RB",
+      "time": null
+    },
+    {
+      "position": 15,
+      "driverCode": "SAI",
+      "team": "Williams",
+      "time": null
+    },
+    {
+      "position": 16,
+      "driverCode": "STR",
+      "team": "Aston Martin",
+      "time": null
+    },
+    {
+      "position": 17,
+      "driverCode": "DOO",
+      "team": "Alpine",
+      "time": null
+    },
+    {
+      "position": 18,
+      "driverCode": "BOR",
+      "team": "Sauber",
+      "time": null
+    },
+    {
+      "position": 19,
+      "driverCode": "BEA",
+      "team": "Haas",
+      "time": null
+    },
+    {
+      "position": 20,
+      "driverCode": "TSU",
+      "team": "Red Bull",
+      "time": null
+    }
+  ],
+  "sprintRaceResults": [
+    {
+      "driverCode": "NOR",
+      "team": "McLaren",
+      "startingPosition": 3,
+      "finishingPosition": 1,
+      "overtakes": 2,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 8
+    },
+    {
+      "driverCode": "PIA",
+      "team": "McLaren",
+      "startingPosition": 2,
+      "finishingPosition": 2,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 7
+    },
+    {
+      "driverCode": "HAM",
+      "team": "Ferrari",
+      "startingPosition": 7,
+      "finishingPosition": 3,
+      "overtakes": 4,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 6
+    },
+    {
+      "driverCode": "RUS",
+      "team": "Mercedes",
+      "startingPosition": 5,
+      "finishingPosition": 4,
+      "overtakes": 1,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 5
+    },
+    {
+      "driverCode": "STR",
+      "team": "Aston Martin",
+      "startingPosition": 16,
+      "finishingPosition": 5,
+      "overtakes": 11,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 4
+    },
+    {
+      "driverCode": "TSU",
+      "team": "Red Bull",
+      "startingPosition": 20,
+      "finishingPosition": 6,
+      "overtakes": 14,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 3
+    },
+    {
+      "driverCode": "ANT",
+      "team": "Mercedes",
+      "startingPosition": 1,
+      "finishingPosition": 7,
+      "overtakes": 0,
+      "positionsLost": 6,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 2
+    },
+    {
+      "driverCode": "GAS",
+      "team": "Alpine",
+      "startingPosition": 13,
+      "finishingPosition": 8,
+      "overtakes": 5,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 1
+    },
+    {
+      "driverCode": "HUL",
+      "team": "Sauber",
+      "startingPosition": 11,
+      "finishingPosition": 9,
+      "overtakes": 2,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "HAD",
+      "team": "RB",
+      "startingPosition": 9,
+      "finishingPosition": 10,
+      "overtakes": 0,
+      "positionsLost": 1,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "ALB",
+      "team": "Williams",
+      "startingPosition": 8,
+      "finishingPosition": 11,
+      "overtakes": 0,
+      "positionsLost": 3,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "OCO",
+      "team": "Haas",
+      "startingPosition": 12,
+      "finishingPosition": 12,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "LAW",
+      "team": "RB",
+      "startingPosition": 14,
+      "finishingPosition": 13,
+      "overtakes": 1,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "BEA",
+      "team": "Haas",
+      "startingPosition": 19,
+      "finishingPosition": 14,
+      "overtakes": 5,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "BOR",
+      "team": "Sauber",
+      "startingPosition": 18,
+      "finishingPosition": 15,
+      "overtakes": 3,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "DOO",
+      "team": "Alpine",
+      "startingPosition": 17,
+      "finishingPosition": 16,
+      "overtakes": 1,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "VER",
+      "team": "Red Bull",
+      "startingPosition": 4,
+      "finishingPosition": 17,
+      "overtakes": 0,
+      "positionsLost": 13,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "ALO",
+      "team": "Aston Martin",
+      "startingPosition": 10,
+      "finishingPosition": null,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Retired",
+      "fastestLap": false,
+      "points": 0,
+      "dnf_lap": 14
+    },
+    {
+      "driverCode": "SAI",
+      "team": "Williams",
+      "startingPosition": 15,
+      "finishingPosition": null,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Retired",
+      "fastestLap": false,
+      "points": 0,
+      "dnf_lap": 13
+    },
+    {
+      "driverCode": "LEC",
+      "team": "Ferrari",
+      "startingPosition": 6,
+      "finishingPosition": null,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Retired",
+      "fastestLap": false,
+      "points": 0,
+      "dnf_lap": 1
+    }
+  ],
+  "qualifyingResults": [
+    {
+      "position": 1,
+      "driverCode": "VER",
+      "team": "Red Bull",
+      "time": null
+    },
+    {
+      "position": 2,
+      "driverCode": "NOR",
+      "team": "McLaren",
+      "time": null
+    },
+    {
+      "position": 3,
+      "driverCode": "ANT",
+      "team": "Mercedes",
+      "time": null
+    },
+    {
+      "position": 4,
+      "driverCode": "PIA",
+      "team": "McLaren",
+      "time": null
+    },
+    {
+      "position": 5,
+      "driverCode": "RUS",
+      "team": "Mercedes",
+      "time": null
+    },
+    {
+      "position": 6,
+      "driverCode": "SAI",
+      "team": "Williams",
+      "time": null
+    },
+    {
+      "position": 7,
+      "driverCode": "ALB",
+      "team": "Williams",
+      "time": null
+    },
+    {
+      "position": 8,
+      "driverCode": "LEC",
+      "team": "Ferrari",
+      "time": null
+    },
+    {
+      "position": 9,
+      "driverCode": "OCO",
+      "team": "Haas",
+      "time": null
+    },
+    {
+      "position": 10,
+      "driverCode": "TSU",
+      "team": "Red Bull",
+      "time": null
+    },
+    {
+      "position": 11,
+      "driverCode": "HAD",
+      "team": "RB",
+      "time": null
+    },
+    {
+      "position": 12,
+      "driverCode": "HAM",
+      "team": "Ferrari",
+      "time": null
+    },
+    {
+      "position": 13,
+      "driverCode": "BOR",
+      "team": "Sauber",
+      "time": null
+    },
+    {
+      "position": 14,
+      "driverCode": "DOO",
+      "team": "Alpine",
+      "time": null
+    },
+    {
+      "position": 15,
+      "driverCode": "LAW",
+      "team": "RB",
+      "time": null
+    },
+    {
+      "position": 16,
+      "driverCode": "HUL",
+      "team": "Sauber",
+      "time": null
+    },
+    {
+      "position": 17,
+      "driverCode": "ALO",
+      "team": "Aston Martin",
+      "time": null
+    },
+    {
+      "position": 18,
+      "driverCode": "GAS",
+      "team": "Alpine",
+      "time": null
+    },
+    {
+      "position": 19,
+      "driverCode": "STR",
+      "team": "Aston Martin",
+      "time": null
+    },
+    {
+      "position": 20,
+      "driverCode": "BEA",
+      "team": "Haas",
+      "time": null
+    }
+  ],
+  "raceResults": [
+    {
+      "driverCode": "PIA",
+      "team": "McLaren",
+      "startingPosition": 4,
+      "finishingPosition": 1,
+      "overtakes": 3,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 25
+    },
+    {
+      "driverCode": "NOR",
+      "team": "McLaren",
+      "startingPosition": 2,
+      "finishingPosition": 2,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": true,
+      "points": 18
+    },
+    {
+      "driverCode": "RUS",
+      "team": "Mercedes",
+      "startingPosition": 5,
+      "finishingPosition": 3,
+      "overtakes": 2,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 15
+    },
+    {
+      "driverCode": "VER",
+      "team": "Red Bull",
+      "startingPosition": 1,
+      "finishingPosition": 4,
+      "overtakes": 0,
+      "positionsLost": 3,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 12
+    },
+    {
+      "driverCode": "ALB",
+      "team": "Williams",
+      "startingPosition": 7,
+      "finishingPosition": 5,
+      "overtakes": 2,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 10
+    },
+    {
+      "driverCode": "ANT",
+      "team": "Mercedes",
+      "startingPosition": 3,
+      "finishingPosition": 6,
+      "overtakes": 0,
+      "positionsLost": 3,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 8
+    },
+    {
+      "driverCode": "LEC",
+      "team": "Ferrari",
+      "startingPosition": 8,
+      "finishingPosition": 7,
+      "overtakes": 1,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 6
+    },
+    {
+      "driverCode": "HAM",
+      "team": "Ferrari",
+      "startingPosition": 12,
+      "finishingPosition": 8,
+      "overtakes": 4,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 4
+    },
+    {
+      "driverCode": "SAI",
+      "team": "Williams",
+      "startingPosition": 6,
+      "finishingPosition": 9,
+      "overtakes": 0,
+      "positionsLost": 3,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 2
+    },
+    {
+      "driverCode": "TSU",
+      "team": "Red Bull",
+      "startingPosition": 10,
+      "finishingPosition": 10,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 1
+    },
+    {
+      "driverCode": "HAD",
+      "team": "RB",
+      "startingPosition": 11,
+      "finishingPosition": 11,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "OCO",
+      "team": "Haas",
+      "startingPosition": 9,
+      "finishingPosition": 12,
+      "overtakes": 0,
+      "positionsLost": 3,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "GAS",
+      "team": "Alpine",
+      "startingPosition": 20,
+      "finishingPosition": 13,
+      "overtakes": 7,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "HUL",
+      "team": "Sauber",
+      "startingPosition": 16,
+      "finishingPosition": 14,
+      "overtakes": 2,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "ALO",
+      "team": "Aston Martin",
+      "startingPosition": 17,
+      "finishingPosition": 15,
+      "overtakes": 2,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "STR",
+      "team": "Aston Martin",
+      "startingPosition": 18,
+      "finishingPosition": 16,
+      "overtakes": 2,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Finished",
+      "fastestLap": false,
+      "points": 0
+    },
+    {
+      "driverCode": "LAW",
+      "team": "RB",
+      "startingPosition": 15,
+      "finishingPosition": null,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Retired",
+      "fastestLap": false,
+      "points": 0,
+      "dnf_lap": 37
+    },
+    {
+      "driverCode": "BOR",
+      "team": "Sauber",
+      "startingPosition": 13,
+      "finishingPosition": null,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Retired",
+      "fastestLap": false,
+      "points": 0,
+      "dnf_lap": 31
+    },
+    {
+      "driverCode": "BEA",
+      "team": "Haas",
+      "startingPosition": 19,
+      "finishingPosition": null,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Retired",
+      "fastestLap": false,
+      "points": 0,
+      "dnf_lap": 28
+    },
+    {
+      "driverCode": "DOO",
+      "team": "Alpine",
+      "startingPosition": 14,
+      "finishingPosition": null,
+      "overtakes": 0,
+      "positionsLost": 0,
+      "crashes": 0,
+      "collisions": 0,
+      "status": "Retired",
+      "fastestLap": false,
+      "points": 0,
+      "dnf_lap": 1
+    }
+  ]
+}

@@ -1,107 +1,51 @@
-import json
-from kafka import KafkaProducer
-import os
-import time
+import argparse
+import sys
+from pathlib import Path
 
-KAFKA_BROKER = 'localhost:9092'
-HISTORICAL_DIR = 'generator/historical/generated_historical_results'
-TOPICS = {
-    "practice": "historical-performance-practice",
-    "qualifying": "historical-performance-qualifying",
-    "sprint_qualifying": "historical-performance-qualifying",
-    "race": "historical-performance-race",
-    "sprint_race": "historical-performance-race"
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repo root, for `gridpulse`
+
+from gridpulse.config import DATA_SOURCE, DATA_SOURCES, TOPIC_HIST_PRACTICE, TOPIC_HIST_QUALIFYING, TOPIC_HIST_RACE
+from gridpulse.history import historical_weekends, weekend_sessions
+from gridpulse.kafka_io import ensure_topics, make_producer
+from gridpulse.season import SESSION_KIND
+
+TOPIC_FOR_KIND = {
+    "practice": TOPIC_HIST_PRACTICE,
+    "qualifying": TOPIC_HIST_QUALIFYING,
+    "sprint_qualifying": TOPIC_HIST_QUALIFYING,
+    "race": TOPIC_HIST_RACE,
+    "sprint": TOPIC_HIST_RACE,
 }
 
-def create_kafka_producer():
+
+def produce_historical_data(producer, source):
     try:
-        producer = KafkaProducer(
-            bootstrap_servers=KAFKA_BROKER,
-            value_serializer=lambda v: json.dumps(v).encode('utf-8')
-        )
-        print("Kafka Producer connected successfully")
-        return producer
-    except Exception as e:
-        print(f"Error connecting to Kafka: {e}")
-        return None
+        weekends = historical_weekends(source)
+    except (FileNotFoundError, ValueError) as e:
+        sys.exit(f"Error: {e}")
 
-def produce_historical_data(producer):
-    if not os.path.isdir(HISTORICAL_DIR):
-        print(f"Error: Directory '{HISTORICAL_DIR}' not found; Run the generator script first")
-        return
-
-    json_files = [f for f in os.listdir(HISTORICAL_DIR) if f.endswith('.json')]
-    if not json_files:
-        print(f"No JSON result files found in '{HISTORICAL_DIR}'")
-        return
-    
-    print(f"Found {len(json_files)} race weekend files to process from '{HISTORICAL_DIR}'")
+    print(f"Sending {len(weekends)} {source} race weekends (the historical part of the season)")
     total_messages = 0
+    for weekend in weekends:
+        print(f"\n--- Round {weekend['round']}: {weekend['raceName']} ---")
+        for session_key, results in weekend_sessions(weekend):
+            topic = TOPIC_FOR_KIND[SESSION_KIND[session_key]]
+            for result in results:
+                result["data_source"] = source  # lets calculation_service keep sources apart
+                producer.send(topic, key=result.get("driverCode", "UNKNOWN"), value=result)
+            total_messages += len(results)
+            print(f"  Queued {len(results)} messages for {session_key} to topic '{topic}'")
 
-    for filename in sorted(json_files):
-        filepath = os.path.join(HISTORICAL_DIR, filename)
-        with open(filepath, 'r', encoding='utf-8') as f:
-            weekend = json.load(f)
-        
-        race_name = weekend['raceName']
-        print(f"\n--- Processing {race_name} ---")
-        
-        def send_batch(session_key, session_type, topic):
-            if session_key not in weekend:
-                return 0
-            count = 0
-            for result in weekend[session_key]:
-                result.update({
-                    'raceName': race_name, 'season': weekend['season'],
-                    'round': weekend['round'], 'session_type': session_type
-                })
-                driver_code = result.get('driverCode', 'UNKNOWN')
-                producer.send(topic, key=driver_code.encode('utf-8'), value=result)
-                count += 1
-            print(f"  Queued {count} messages for {session_type} to topic '{topic}'")
-            return count
-
-        total_messages += send_batch("practice1Results", "practice1", TOPICS['practice'])
-        total_messages += send_batch("practice2Results", "practice2", TOPICS['practice'])
-        total_messages += send_batch("practice3Results", "practice3", TOPICS['practice'])
-        total_messages += send_batch("sprintQualifyingResults", "sprint_qualifying", TOPICS['sprint_qualifying'])
-        total_messages += send_batch("sprintRaceResults", "sprint_race", TOPICS['sprint_race'])
-        total_messages += send_batch("qualifyingResults", "qualifying", TOPICS['qualifying'])
-        total_messages += send_batch("raceResults", "race", TOPICS['race'])
-        
     producer.flush()
-    print(f"\n")
-    print(f"Successfully sent a total of {total_messages} historical messages to Kafka")
+    print(f"\nSuccessfully sent a total of {total_messages} historical messages to Kafka")
 
 
 if __name__ == "__main__":
-    kafka_producer = create_kafka_producer()
-    if kafka_producer:
-        produce_historical_data(kafka_producer)
-        kafka_producer.close()
-
-# Kafka Commands for later (all in Kafka Directory)
-# 1. Create Topic:
-# ./kafka-topics.sh --create --topic historical-performance-practice --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-# ./kafka-topics.sh --create --topic historical-performance-race --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-# ./kafka-topics.sh --create --topic historical-performance-qualifying --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-# 2. Delete Topic:
-# ./kafka-topics.sh --delete --topic historical-performance-practice --bootstrap-server localhost:9092
-# ./kafka-topics.sh --delete --topic historical-performance-race --bootstrap-server localhost:9092
-# ./kafka-topics.sh --delete --topic historical-performance-qualifying --bootstrap-server localhost:9092
-# 3. Check list of Topics:
-# ./kafka-topics.sh --list --bootstrap-server localhost:9092
-# 4. To go to Kafka Directory:
-# cd ~/kafka_2.13-3.7.0/bin
-# 5. Check messages sent to a Topic:
-# ./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic historical-performance-practice --from-beginning
-# ./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic historical-performance-race --from-beginning
-# ./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic historical-performance-qualifying --from-beginning
-# 6. Keep Zookeeper running:
-# ./bin/zookeeper-server-start.sh -daemon config/zookeeper.properties
-# 7. Keep Kafka Broker running (in another terminal):
-# ./bin/kafka-server-start.sh -daemon config/server.properties
-# How to stop Kafka Broker:
-# ./bin/kafka-server-stop.sh
-# How to stop Zookeeper Server:
-# ./bin/zookeeper-server-stop.sh
+    parser = argparse.ArgumentParser(description="Send the historical race weekends to Kafka")
+    parser.add_argument("--data", choices=DATA_SOURCES, default=DATA_SOURCE,
+                        help=f"real 2025 results or the simulated season (default: {DATA_SOURCE})")
+    args = parser.parse_args()
+    ensure_topics()
+    kafka_producer = make_producer()
+    produce_historical_data(kafka_producer, args.data)
+    kafka_producer.close()

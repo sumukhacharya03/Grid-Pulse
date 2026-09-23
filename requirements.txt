@@ -1,4 +1,8 @@
-kafka-python
+# Pipeline
+kafka-python>=2.1,<3   # 2.1+ runs on Python 3.12+; 3.x changed the API
 requests
 beautifulsoup4
-streamlit
+
+# Dashboard backend
+fastapi
+uvicorn[standard]

@@ -1,102 +1,87 @@
-import json
-from kafka import KafkaConsumer, KafkaProducer
-import time
+"""Long-running service: prices live race-weekend results as they arrive.
 
-KAFKA_BROKER = 'localhost:9092'
-REALTIME_INPUT_TOPICS = [
-    'realtime-performance-practice',
-    'realtime-performance-qualifying',
-    'realtime-performance-race'
-]
-STATE_TOPIC = 'driver-stock-values'
+On start it rebuilds the market by replaying `market-ticks` (so it resumes
+exactly where it left off), then consumes the real-time topics. Every result
+is applied at most once per epoch, even if a producer sends it twice."""
+from kafka import KafkaConsumer, TopicPartition
 
-drivers_data = {}
+from gridpulse.config import KAFKA_BROKER, REALTIME_TOPICS, TOPIC_MARKET_TICKS, TOPIC_STOCK_VALUES
+from gridpulse.kafka_io import deserialize, ensure_topics, make_producer, read_to_end
+from gridpulse.market import MarketEngine
 
-def apply_change(driver_code, percentage_change):
-    if driver_code in drivers_data and 'current_value' in drivers_data[driver_code]:
-        drivers_data[driver_code]['current_value'] *= (1 + percentage_change)
-        print(f"Applied {percentage_change*100:.4f}% change to {driver_code}. New value: ${drivers_data[driver_code]['current_value']:,.2f}")
-    else:
-        print(f"Could not apply change, driver {driver_code} not found in memory.")
 
-def process_realtime_message(data, topic):
-    driver_code = data.get('driverCode')
-    if not driver_code or driver_code not in drivers_data:
-        return False
+def load_market():
+    print("Rebuilding market state from Kafka...")
+    engine = MarketEngine()
+    for message in read_to_end([TOPIC_MARKET_TICKS]):
+        engine.replay(message.value)
+    if engine.epoch is None:
+        raise SystemExit("FATAL: No market found in 'market-ticks'.\n"
+                         "Please run 'calculation_service.py' once to process historical data.")
+    print(f"Market epoch {engine.epoch} loaded: {len(engine.drivers)} drivers, {len(engine.ticks)} price moves.")
+    return engine
 
-    position = data.get('position') or data.get('finishingPosition')
 
-    if 'practice' in topic and position and position <= 3:
-        apply_change(driver_code, 0.0003)
-    elif 'qualifying' in topic and position:
-        if position == 1:
-            apply_change(driver_code, 0.003)
-        elif position <= 3:
-            apply_change(driver_code, 0.001)
-    elif 'race' in topic:
-        points = data.get('points', 0)
-        if points > 0: apply_change(driver_code, points * 0.0005)
-        if data.get('fastestLap'): apply_change(driver_code, 0.0015)
-        if data.get('crashes', 0) > 0 or data.get('collisions', 0) > 0: apply_change(driver_code, -0.005)
-        if data.get('status') != 'Finished': apply_change(driver_code, -0.003)
-    
-    return True
-
-def load_initial_state(broker):
-    print("Loading initial market state from Kafka...")
-    state_consumer = KafkaConsumer(
-        STATE_TOPIC,
-        bootstrap_servers=broker,
-        auto_offset_reset='earliest',
-        consumer_timeout_ms=10000,
-        value_deserializer=lambda x: json.loads(x.decode('utf-8'))
-    )
-
-    for message in state_consumer:
-        driver_code = message.key.decode('utf-8')
-        drivers_data[driver_code] = message.value
-    
-    state_consumer.close()
-    if not drivers_data:
-        print("FATAL: No initial state found in 'driver-stock-values' topic.")
-        print("Please run the main 'calculation_service.py' once to process historical data.")
-        exit()
-    print(f"Initial state loaded successfully for {len(drivers_data)} drivers.")
+def tail_consumer(topic):
+    """Positioned at the end of `topic`, to notice new epochs from the batch job."""
+    consumer = KafkaConsumer(bootstrap_servers=KAFKA_BROKER, value_deserializer=deserialize,
+                             enable_auto_commit=False, group_id=None)
+    tp = TopicPartition(topic, 0)
+    consumer.assign([tp])
+    consumer.seek_to_end(tp)
+    return consumer
 
 
 def main():
-    load_initial_state(KAFKA_BROKER)
-
-    producer = KafkaProducer(
-        bootstrap_servers=KAFKA_BROKER,
-        value_serializer=lambda v: json.dumps(v).encode('utf-8')
-    )
-    
+    ensure_topics()
+    engine = load_market()
+    producer = make_producer()
+    epoch_watch = tail_consumer(TOPIC_MARKET_TICKS)
     consumer = KafkaConsumer(
-        *REALTIME_INPUT_TOPICS,
+        *REALTIME_TOPICS,
         bootstrap_servers=KAFKA_BROKER,
-        auto_offset_reset='latest',
-        group_id='gridpulse-realtime-service',
-        value_deserializer=lambda x: json.loads(x.decode('utf-8'))
+        # 'earliest' so events produced while this service was down are not
+        # lost; anything already priced is skipped by the engine.
+        auto_offset_reset="earliest",
+        enable_auto_commit=False,
+        group_id="gridpulse-realtime-service",
+        value_deserializer=deserialize,
     )
 
     print("\nReal-time Calculation Service is running and listening for live events...")
-    
     try:
-        for message in consumer:
-            print(f"\nReceived new event from topic '{message.topic}' for {message.value.get('driverCode')}")
-            if process_realtime_message(message.value, message.topic):
-                driver_code = message.value.get('driverCode')
-                if driver_code and driver_code in drivers_data:
-                    producer.send(STATE_TOPIC, key=driver_code.encode('utf-8'), value=drivers_data[driver_code])
-                    producer.flush()
+        while True:
+            for batch in epoch_watch.poll(timeout_ms=0).values():
+                for m in batch:
+                    if m.value and engine.replay(m.value) == "epoch":
+                        print(f"\nMarket was rebuilt by the batch job; now on epoch {engine.epoch}.")
 
+            records = consumer.poll(timeout_ms=1000)
+            for batch in records.values():
+                for message in batch:
+                    data = message.value
+                    if not data:
+                        continue
+                    tick = engine.apply(data, live=True)
+                    if tick is None:
+                        print(f"Skipped {data.get('driverCode')} {data.get('session_type')} (duplicate or unknown)")
+                        continue
+                    producer.send(TOPIC_MARKET_TICKS, key=tick["driver_code"], value=tick)
+                    producer.send(TOPIC_STOCK_VALUES, key=tick["driver_code"],
+                                  value=engine.state_message(tick["driver_code"]))
+                    print(f"{tick['race']} {tick['session_name']}: {tick['driver_code']} "
+                          f"{tick['change_pct']:+.2f}% -> ${tick['value_after']:,.0f}")
+            if records:
+                producer.flush()
+                consumer.commit()
     except KeyboardInterrupt:
         print("\nShutting down Real-time Service...")
     finally:
         consumer.close()
+        epoch_watch.close()
         producer.close()
         print("Service stopped.")
+
 
 if __name__ == "__main__":
     main()

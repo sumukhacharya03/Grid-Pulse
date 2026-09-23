@@ -1,0 +1,20 @@
+# Single-node Kafka (KRaft mode, no ZooKeeper) for local development.
+#   docker compose up -d
+# The broker is advertised as localhost:9092, so the Python scripts on the
+# host connect to it directly. Topics are created by the scripts themselves.
+services:
+  kafka:
+    image: apache/kafka:3.9.1
+    container_name: gridpulse-kafka
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  kafka-data:

@@ -1,107 +1,158 @@
-# Grid-Pulse: Real-Time Stock Market for F1 Drivers 
+# Grid-Pulse: a real-time stock market for F1 drivers
 
-Grid-Pulse is a real-time data processing project that simulates a stock market for Formula 1 drivers. A driver's stock value is determined by a baseline market value and is dynamically updated based on their performance in historical and live-simulated race weekends.
+Grid-Pulse turns Formula 1 drivers into tradeable stocks, priced from the **real 2025 season**. Every driver starts at a baseline valuation (salary + endorsements), and every session of every race weekend moves their price, live, through an **Apache Kafka** pipeline into a trading-terminal dashboard. Then you play the market with pretend money against everyone else on the server.
 
-The project uses a data pipeline built with **Python**, **Apache Kafka**, and **Streamlit** to generate, process, and visualize data in real-time.
+![Grid-Pulse replaying the real 2025 Italian GP qualifying live](docs/dashboard.png)
+
+- **Real results**: the actual 2025 season, fetched with [FastF1](https://github.com/theOehrly/Fast-F1). Rounds 1–14 set the market; **Go live** replays rounds 15–24 session by session, exactly as they happened.
+- **The game**: everyone starts with $100,000 of pretend money. Back drivers before a weekend, watch your portfolio move live, and climb a shared leaderboard.
+- **Pulse Index**: a cap-weighted index of the whole grid (base 1000), charted across the season.
+- **Every move explained**: the Pit Wall feed and driver pages show *why* each price moved ("Qualified P2 (exp. P7) +0.60%", "Retired on lap 52 −1.00%").
+- **Constructors heatmap**, a sortable card/table board, stat tiles (top gainer, biggest faller, title leader, most undervalued), and Session / Weekend / Season ranges.
+
+<img src="docs/game.png" alt="Portfolio, leaderboard and the grid during a live session" width="800" />
+
+## How prices move
+
+The market *prices in an expectation*: a driver whose stock is the Nth most valuable is expected to finish Nth. Beating that lifts the price, falling short drops it, and headline moments add shocks on top. Expensive drivers therefore have to keep delivering, while a cheap rookie who scores points rallies hard.
+
+| Session | Move |
+|---|---|
+| Practice | ±0.04% per place vs expectation (capped at ±0.4%), +0.1% for P1 |
+| Qualifying | ±0.12% per place (cap ±1.2%), +0.6% pole, +0.2% for P2–P3 |
+| Race | ±0.25% per place (cap ±3%), +0.06% per point, +1% win, +0.4% podium, +0.04% per place gained, +0.2% fastest lap |
+| Retirement | crash −2.5%, collision −1.5%, other retirements −1% |
+| Sprint weekends | sprint qualifying counts 50%, sprint races 40% |
+
+The model lives in [`gridpulse/pricing.py`](gridpulse/pricing.py). The official timing data only says "Retired", not why, so real retirements are priced as plain retirements.
+
+## The game
+
+- Pick a name and you're in. There's no sign-up: the account lives in your browser.
+- You invest dollars in a driver, and the holding moves with their price. Buy $10,000 of a driver who rises 5% and it's worth $10,500.
+- **Trading pauses while a session is live**, so nobody can read the timing tower and sell before a result is priced.
+- Each market reset starts a new season: everyone gets a fresh $100,000.
+- Everything is stored in SQLite (`gridpulse.db`, or `GRIDPULSE_DB`).
+
+## Data: real or simulated
+
+| | `--data real` (default) | `--data simulated` |
+|---|---|---|
+| Rounds 1–14 (history) | actual 2025 results | a generated season |
+| **Go live** (rounds 15–24) | replays what really happened | simulates new weekends |
+| Files | `generator/real_data/results_2025/` | `generator/historical/generated_historical_results/` |
+
+The real results are committed, so nothing needs downloading. To refresh them run `python generator/real_data/fetch_real_results.py`. It uses FastF1, caches downloads in `.fastf1-cache/`, and is limited to 500 API calls an hour, so a full re-fetch may need two runs. Practice has no official classification, so it's ranked by fastest lap. The same flag, or `GRIDPULSE_DATA=simulated`, works on `dashboard.py`, `producer2.py`, `calculation_service.py` and `generator_real_time.py`.
 
 ## Architecture
 
-The application is built on a distributed messaging architecture using Apache Kafka to decouple the data generation, processing, and visualization components.
+```
+ baseline CSV ──producer1──▶ drivers-baseline-value ─┐
+ real / simulated JSON ─producer2─▶ historical-performance-* ─┴─▶ calculation_service ─┐
+                                                                                       ├─▶ market-ticks ──▶ dashboard (FastAPI + WebSocket) ──▶ browser
+ live weekend ─▶ queue ─producer3─▶ realtime-performance-* ─▶ realtime_service ────────┘      driver-stock-values         game (SQLite)
+```
 
-The data flows through the system in two main phases:
+- **`market-ticks` is an event log.** Every price change is a tick carrying its reasons, and each market build starts with an *epoch* record holding the baselines. Replaying the topic rebuilds the market exactly, which is how `realtime_service` and the dashboard recover after a restart.
+- **Exactly-once pricing per result.** Each `(round, session, driver)` result is applied at most once per epoch, so re-running a producer or restarting a service never double-counts.
+- **Re-runnable batch job.** Running `calculation_service.py` again starts a new epoch; consumers drop the old one automatically.
+- **Demo mode** runs the same engine in-process without Kafka, and saves its live weekends to SQLite, so a restart resumes the season.
+- `gridpulse/` holds the shared core (roster, calendar, simulator, pricing, engine, game, Kafka helpers) used by every script.
 
-1.  **Batch Processing (Historical Data):** Establishes the initial market state by processing baseline values and a full season of simulated historical race data.
-2.  **Stream Processing (Real-time Data):** A long-running service listens for live race weekend events (triggered by a cron job) and applies incremental updates to the market.
+## Quick start (no Kafka needed)
 
-<img width="883" height="855" alt="Screenshot from 2025-09-09 18-26-52" src="https://github.com/user-attachments/assets/0dcf5dab-ea91-4503-b267-619d1d60ee87" />
+Requires Python 3.10+ and Node 20+.
 
-
-## Grid-Pulse Dashboard 
-
-<img width="1855" height="935" alt="Screenshot from 2025-09-09 17-36-30" src="https://github.com/user-attachments/assets/451baf0e-43f3-4d8a-b2a9-5629ea9a4c80" />
-
-
-## How to Run the Project?
-
-Follow these steps to set up and run the Grid-Pulse application from scratch on a Linux machine.
-
-### 1. Prerequisites
-* **Git:** To clone the repository.
-* **Python 3.8+:** To run the application scripts.
-* **Apache Kafka:** To handle the data streams. Ensure both Zookeeper and the Kafka Broker are running.
-
-### 2. Clone the Repository
 ```bash
 git clone https://github.com/sumukhacharya03/Grid-Pulse.git
 cd Grid-Pulse
-```
-
-### 3. Install Dependencies
-Install the required Python packages.
-```bash
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+
+cd web && npm install && npm run build && cd ..
+python dashboard.py --mode demo --open
 ```
 
-### 4. Setup Kafka
-Make sure Zookeeper and your Kafka broker are running. Then, create all the necessary Kafka topics with the following commands (run from your Kafka installation directory):
+Open http://127.0.0.1:8000, join the game, buy a driver or two, and hit **Go live**.
+
+## Put it online
+
+The `Dockerfile` builds the UI and runs the dashboard in **public mode**, which is demo mode plus guard rails for strangers:
+- no instant replays
+- a 60-second trading window between weekends
+- only the host can stop a weekend or reset before the season ends
 
 ```bash
-# Delete topics if they exist for a clean slate
-./bin/kafka-topics.sh --delete --topic drivers-baseline-value --bootstrap-server localhost:9092
-./bin/kafka-topics.sh --delete --topic historical-performance-practice --bootstrap-server localhost:9092
-# ... (add delete commands for all other topics)
-
-# Create all topics
-./bin/kafka-topics.sh --create --topic drivers-baseline-value --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-./bin/kafka-topics.sh --create --topic historical-performance-practice --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-./bin/kafka-topics.sh --create --topic historical-performance-qualifying --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-./bin/kafka-topics.sh --create --topic historical-performance-race --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-./bin/kafka-topics.sh --create --topic realtime-performance-practice --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-./bin/kafka-topics.sh --create --topic realtime-performance-qualifying --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-./bin/kafka-topics.sh --create --topic realtime-performance-race --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
-./bin/kafka-topics.sh --create --topic driver-stock-values --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+docker build -t grid-pulse .
+docker run -p 8080:8080 -v gridpulse-data:/data -e GRIDPULSE_ADMIN_TOKEN=pick-a-secret grid-pulse
 ```
 
-### 5. Run the One-Time Historical Setup
-These scripts generate and process all the historical data to establish the initial market state.
+Keep `/data` on a volume so portfolios survive redeploys. As host, send `X-Admin-Token: <secret>` to `POST /api/simulate/stop` or `POST /api/reset`.
+
+**Fly.io** (config included in `fly.toml`):
 
 ```bash
-# 1. Scrape and generate the baseline values CSV
-python baseline_market_value/scraper.py | python baseline_market_value/output.py
-
-# 2. Generate historical race data JSON files
-python generator/historical/generator_historical.py
-
-# 3. Produce baseline and historical data to Kafka
-python baseline_market_value/producer1.py
-python generator/historical/producer2.py
-
-# 4. Run the batch calculation service to set the initial market state
-python calculation_service.py
+fly launch --copy-config --no-deploy        # pick a unique app name
+fly volumes create gridpulse_data --size 1
+fly secrets set GRIDPULSE_ADMIN_TOKEN=pick-a-secret
+fly deploy
+fly scale count 1                           # the market lives in one process: run exactly one machine
 ```
 
-### 6. Launch the Live Application
-Now, start the long-running services. You will need **two separate terminals**.
+Any other Docker host works the same way: expose port 8080, mount a volume at `/data`, and run a single instance.
 
-* **Terminal 1: Start the Real-time Service**
-    This service loads the historical state and listens for live race events.
-    ```bash
-    python realtime_service.py
-    ```
+## Full pipeline with Kafka
 
-* **Terminal 2: Start the Streamlit Dashboard**
-    This will launch the web application.
-    ```bash
-    streamlit run stock_market.py
-    ```
+### 1. Start Kafka
 
-### 7. Automate Real-time Generation (Optional)
-To have the simulation run automatically on scheduled race days, set up a cron job.
+```bash
+docker compose up -d      # single-node Kafka (KRaft) on localhost:9092
+```
 
-1.  Open crontab: `crontab -e`
-2.  Add this line, replacing the path with the absolute path to your project:
-    ```
-    0 9 * * * /usr/bin/python3 /path/to/your/project/grid-pulse/generator/real_time/schedule_manager.py
-    ```
+Topics are created automatically, with unlimited retention, the first time any script runs. Set `GRIDPULSE_KAFKA_BROKER` to use a different broker.
 
-The system is now live! The cron job will trigger the data generation on race days, and the dashboard will update automatically.
+### 2. Build the market (one-time batch)
+
+```bash
+python baseline_market_value/producer1.py       # baseline values -> Kafka
+python generator/historical/producer2.py        # rounds 1-14 -> Kafka
+python calculation_service.py                   # prices history, publishes the market
+```
+
+Optional: refresh the baseline values with `python baseline_market_value/scraper.py | python baseline_market_value/output.py`. It scrapes Forbes, falling back to saved values when a profile has no figures. For the simulated season, regenerate it with `python generator/historical/generator_historical.py --seed 2025`.
+
+### 3. Run the live services (two terminals)
+
+```bash
+python realtime_service.py        # prices live results as they arrive
+python dashboard.py               # auto-detects Kafka; http://127.0.0.1:8000
+```
+
+### 4. Race
+
+Press **Go live** on the dashboard. It sends the weekend's results to the real-time topics, `realtime_service` prices them, and the ticks stream back to the page. Or drive it from the command line:
+
+```bash
+python generator/real_time/generator_real_time.py "Dutch Grand Prix" --weekend   # writes events to the queue
+python generator/real_time/producer3.py --exit-when-idle 30                      # ships the queue to Kafka
+```
+
+For date-driven automation, run `generator/real_time/schedule_manager.py` daily (cron / Task Scheduler). On a race-weekend date it starts `producer3` (single-instance, exits when idle) and streams that day's sessions. The calendar is the 2025 season, so use `--date 2025-08-30` to try it.
+
+## Development
+
+```bash
+pip install -r requirements-dev.txt     # includes FastF1, for refreshing the real data
+pytest                                  # model, engine, simulator, real data, game, API
+
+python dashboard.py --mode demo         # backend on :8000
+cd web && npm run dev                   # UI with hot reload on :5173 (proxies to :8000)
+```
+
+Frontend: React 19 + TypeScript, Vite, Tailwind CSS v4, Motion, and [TradingView Lightweight Charts™](https://www.tradingview.com/lightweight-charts/).
+
+Backend: Python, FastAPI, kafka-python, SQLite, FastF1.
+
+---
+
+A fan project. Pretend money only; not affiliated with Formula 1.

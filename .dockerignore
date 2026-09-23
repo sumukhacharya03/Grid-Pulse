@@ -1,0 +1,14 @@
+.git
+vnev
+venv
+.venv
+**/__pycache__
+.pytest_cache
+.fastf1-cache
+gridpulse.db*
+web/node_modules
+web/dist
+docs
+tests
+generator/real_time/live_events_queue
+generator/real_time/weekend_state

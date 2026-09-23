@@ -1,40 +1,39 @@
+import csv
+import os
 import sys
 
-# Uploading the output from the scraper.py into data variable; run using "python scraper.py | python output.py"
-data=sys.stdin.read()
-# print("Output from Scraper:",data)
-
-# Since data will be a string, we will convert into list of strings
-lines=data.splitlines()
-# print(lines)
+# Reads the output of scraper.py from stdin; run using "python scraper.py | python output.py"
+data = sys.stdin.read()
+lines = data.splitlines()
 
 # To put all these values in csv file, we need it in the form of list of tuples like [(driver_name,baseline_value)..]
-result=[]
-driver_name=None
-baseline_value=None
+result = []
+driver_name = None
+baseline_value = None
 
 for line in lines:
     if line.startswith("Driver Name:"):
-        driver_name=line.replace("Driver Name:","").strip()
+        driver_name = line.replace("Driver Name:", "").strip()
     elif line.startswith("Baseline Value:"):
-        baseline_value=line.replace("Baseline Value:","").strip()
+        baseline_value = line.replace("Baseline Value:", "").strip()
     elif line.startswith("---"):
         if driver_name and baseline_value:
-            result.append((driver_name,baseline_value))
-        driver_name=None
-        baseline_value=None
-    
+            result.append((driver_name, baseline_value))
+        driver_name = None
+        baseline_value = None
+
 if driver_name and baseline_value:
-    result.append((driver_name,baseline_value))
+    result.append((driver_name, baseline_value))
 
-# print(result)
+if not result:
+    sys.exit("No drivers found on stdin; run: python scraper.py | python output.py")
 
-# Putting driver name and baseline value in a csv file
-import csv
-
-with open('drivers_baseline_value.csv','w') as csvfile:
-    writer=csv.writer(csvfile)
-    writer.writerow(['Driver Name','Baseline Value'])
+# Always written next to this script (it used to land in whatever directory
+# you ran it from, so producer1.py never saw the update).
+csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "drivers_baseline_value.csv")
+with open(csv_path, "w", newline="", encoding="utf-8") as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(["Driver Name", "Baseline Value"])
     writer.writerows(result)
 
-print("CSV File of Drivers Baseline Value succesfully created")
+print(f"CSV File of Drivers Baseline Value successfully created at {csv_path}")
